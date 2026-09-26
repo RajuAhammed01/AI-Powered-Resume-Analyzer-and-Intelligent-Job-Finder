@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ job.get('job_title', 'Job details') if job else 'Job details' }}</h1>
+{% if job %}<p>{{ job.get('job_description', '') }}</p>{% else %}<p>Job details are available from the results page.</p>{% endif %}
+{% endblock %}

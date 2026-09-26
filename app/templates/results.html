@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Matching Jobs</h1>
+{% for job in jobs %}
+<article>
+	<h2>{{ job.get('job_title', 'Untitled role') }}</h2>
+	<p>{{ job.get('employer_name', 'Unknown company') }} | Match: {{ job.match_score }}%</p>
+	<a href="{{ job.get('job_apply_link', '#') }}">View job</a>
+	<form method="POST" action="{{ url_for('jobs.save_job') }}">
+		<input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
+		<input type="hidden" name="company" value="{{ job.get('employer_name', '') }}">
+		<input type="hidden" name="apply_link" value="{{ job.get('job_apply_link', '') }}">
+		<button type="submit">Save job</button>
+	</form>
+</article>
+{% else %}
+<p>No jobs found. Add a valid JSearch API key to search.</p>
+{% endfor %}
+{% endblock %}

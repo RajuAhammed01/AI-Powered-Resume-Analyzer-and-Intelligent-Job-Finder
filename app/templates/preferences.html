@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Job Preferences</h1>
+<form method="POST">
+	<input type="text" name="target_role" placeholder="Target role" value="{{ pref.target_role if pref else '' }}" required>
+	<input type="text" name="location" placeholder="Location" value="{{ pref.location if pref else '' }}" required>
+	<input type="text" name="expected_salary" placeholder="Expected salary" value="{{ pref.expected_salary if pref else '' }}">
+	<button type="submit">Save preferences</button>
+</form>
+{% endblock %}
