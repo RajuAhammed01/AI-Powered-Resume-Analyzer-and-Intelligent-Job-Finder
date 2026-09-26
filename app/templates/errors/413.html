@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>File too large</h1>
+<p>Resume uploads must be 5 MB or smaller.</p>
+<a href="{{ url_for('resume.upload') }}">Try again</a>
+{% endblock %}

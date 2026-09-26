@@ -1,5 +1,6 @@
 import json
 import os
+from uuid import uuid4
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -30,7 +31,7 @@ def upload():
 			flash("Only PDF and DOCX files are allowed")
 			return redirect(request.url)
 
-		filename = secure_filename(file.filename)
+		filename = f"{uuid4().hex}_{secure_filename(file.filename)}"
 		filepath = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
 		file.save(filepath)
 		text = extract_text(filepath)
