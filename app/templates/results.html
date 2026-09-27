@@ -1,19 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Matching Jobs</h1>
-{% for job in jobs %}
-<article>
-	<h2>{{ job.get('job_title', 'Untitled role') }}</h2>
-	<p>{{ job.get('employer_name', 'Unknown company') }} | Match: {{ job.match_score }}%</p>
-	<a href="{{ job.get('job_apply_link', '#') }}">View job</a>
-	<form method="POST" action="{{ url_for('jobs.save_job') }}">
-		<input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
-		<input type="hidden" name="company" value="{{ job.get('employer_name', '') }}">
-		<input type="hidden" name="apply_link" value="{{ job.get('job_apply_link', '') }}">
-		<button type="submit">Save job</button>
-	</form>
-</article>
-{% else %}
-<p>No jobs found. Add a valid JSearch API key to search.</p>
-{% endfor %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1>Recommended Jobs</h1>
+        <p style="margin-bottom: 0;">Based on your resume and preferences</p>
+    </div>
+    <a href="{{ url_for('preferences.preferences') }}" class="btn btn-secondary"><i class="fa-solid fa-sliders"></i> Edit Preferences</a>
+</div>
+
+<div class="jobs-grid">
+    {% for job in jobs %}
+    <div class="glass-card job-card">
+        <div class="job-header">
+            <h2 class="job-title">{{ job.get('job_title', 'Untitled role') }}</h2>
+            <div class="job-company"><i class="fa-solid fa-building"></i> {{ job.get('employer_name', 'Unknown company') }}</div>
+        </div>
+        
+        <div class="job-meta">
+            <span><i class="fa-solid fa-location-dot"></i> {{ job.get('job_city', 'Remote') }}</span>
+            <span><i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }}</span>
+        </div>
+        
+        <div class="skill-badges">
+            <!-- Simulated matched skills -->
+            <span class="badge badge-match">Python</span>
+            <span class="badge badge-match">SQL</span>
+            <!-- Simulated missing skills -->
+            <span class="badge badge-missing">Power BI</span>
+        </div>
+        
+        <p style="font-size: 0.9rem; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ job.get('job_description', 'No description available.')[:150] }}...
+        </p>
+        
+        <div class="match-score">
+            <span class="score-badge {% if job.match_score >= 80 %}high{% elif job.match_score >= 50 %}medium{% else %}low{% endif %}">
+                <i class="fa-solid fa-bullseye"></i> {{ job.match_score }}% Match
+            </span>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <form method="POST" action="{{ url_for('jobs.save_job') }}" style="display: inline;">
+                    <input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
+                    <input type="hidden" name="company" value="{{ job.get('employer_name', '') }}">
+                    <input type="hidden" name="apply_link" value="{{ job.get('job_apply_link', '') }}">
+                    <button type="submit" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;" title="Save Job"><i class="fa-regular fa-bookmark"></i></button>
+                </form>
+                <a href="{{ job.get('job_apply_link', '#') }}" target="_blank" class="btn btn-primary" style="padding: 0.4rem 1rem;">Apply</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+        <i class="fa-solid fa-magnifying-glass" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+        <h2>No jobs found</h2>
+        <p>We couldn't find any jobs matching your preferences. Please ensure your JSearch API key is set in the .env file.</p>
+        <a href="{{ url_for('preferences.preferences') }}" class="btn btn-primary">Update Preferences</a>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

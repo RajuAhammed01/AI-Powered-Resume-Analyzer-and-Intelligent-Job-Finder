@@ -1,29 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>AI Resume Job Finder</title>
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume & Job Finder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-	<nav>
-		<a href="{{ url_for('main.index') }}">Home</a>
-		{% if current_user.is_authenticated %}
-			<a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-			<a href="{{ url_for('resume.upload') }}">Upload</a>
-			<a href="{{ url_for('preferences.preferences') }}">Preferences</a>
-			<a href="{{ url_for('auth.logout') }}">Logout</a>
-		{% else %}
-			<a href="{{ url_for('auth.login') }}">Login</a>
-			<a href="{{ url_for('auth.register') }}">Register</a>
-		{% endif %}
-	</nav>
-	{% with messages = get_flashed_messages() %}
-		{% if messages %}
-			{% for message in messages %}<p>{{ message }}</p>{% endfor %}
-		{% endif %}
-	{% endwith %}
-	{% block content %}{% endblock %}
+    <nav>
+        <a href="{{ url_for('main.index') }}" class="nav-brand">
+            <i class="fa-solid fa-brain"></i> ResumeAI
+        </a>
+        <div class="nav-links">
+            <a href="{{ url_for('main.index') }}">Home</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('resume.upload') }}">Upload Resume</a>
+                <a href="{{ url_for('jobs.results') }}">Find Jobs</a>
+                <a href="{{ url_for('preferences.preferences') }}">Preferences</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn nav-btn">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="btn nav-btn">Get Started</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="alert">
+                            {{ message }}
+                            <i class="fa-solid fa-times" style="cursor: pointer;" onclick="this.parentElement.style.display='none';"></i>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
 </body>
 </html>

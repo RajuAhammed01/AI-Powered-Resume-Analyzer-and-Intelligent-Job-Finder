@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>AI Resume Analyzer</h1>
-<p>Upload your resume and find matching jobs.</p>
+<div class="glass-card" style="text-align: center; padding: 4rem 2rem; margin-top: 5rem;">
+    <h1 style="font-size: 3.5rem; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Land Your Dream Job with AI</h1>
+    <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 2rem;">Upload your resume, and our AI will extract your skills, match you with live job openings, and provide actionable feedback on missing requirements.</p>
+    
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for('resume.upload') }}" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume</a>
+    {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;">Get Started for Free</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; margin-left: 1rem;">Login</a>
+    {% endif %}
+</div>
 {% endblock %}

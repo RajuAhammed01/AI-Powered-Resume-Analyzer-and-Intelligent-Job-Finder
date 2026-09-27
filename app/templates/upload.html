@@ -1,8 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Upload Resume</h1>
-<form method="POST" enctype="multipart/form-data">
-	<input type="file" name="resume" accept=".pdf,.docx" required>
-	<button type="submit">Upload</button>
-</form>
+<div class="glass-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <h2>Upload Your Resume</h2>
+    <p>We support PDF and DOCX formats. Our AI will automatically extract your skills and experience.</p>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="resume" class="upload-zone" onclick="document.getElementById('resume').click()">
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <h3 style="margin-bottom: 0.5rem;">Click to upload or drag and drop</h3>
+                <p style="margin-bottom: 0;">PDF or DOCX (MAX. 5MB)</p>
+            </label>
+            <input type="file" id="resume" name="resume" accept=".pdf,.docx" required style="display: none;" onchange="document.getElementById('file-name').innerText = this.files[0].name">
+            <p id="file-name" style="margin-top: 1rem; font-weight: 500; color: var(--accent-color);"></p>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Resume</button>
+    </form>
+</div>
 {% endblock %}
