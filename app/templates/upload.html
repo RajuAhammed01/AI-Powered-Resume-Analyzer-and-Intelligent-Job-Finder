@@ -1,20 +1,183 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="glass-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
-    <h2>Upload Your Resume</h2>
-    <p>We support PDF and DOCX formats. Our AI will automatically extract your skills and experience.</p>
-    
-    <form method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="resume" class="upload-zone" onclick="document.getElementById('resume').click()">
-                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                <h3 style="margin-bottom: 0.5rem;">Click to upload or drag and drop</h3>
-                <p style="margin-bottom: 0;">PDF or DOCX (MAX. 5MB)</p>
-            </label>
-            <input type="file" id="resume" name="resume" accept=".pdf,.docx" required style="display: none;" onchange="document.getElementById('file-name').innerText = this.files[0].name">
-            <p id="file-name" style="margin-top: 1rem; font-weight: 500; color: var(--accent-color);"></p>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Resume</button>
-    </form>
+<!-- Top Header Banner -->
+<div style="margin-bottom: 2rem;">
+    <div class="hero-tag" style="background: #dbeafe; color: #2563eb;">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+        Upload Your Resume
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+        Get AI-powered analysis, extract your skills, and find the best job matches in seconds.
+    </p>
 </div>
+
+<!-- 2 Column Layout -->
+<div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
+    <!-- Left Main Column: Drag & Drop Box + Upload Form + Recent Table -->
+    <div>
+        <div class="card-panel" style="margin-bottom: 2rem;">
+            <form method="POST" enctype="multipart/form-data" id="upload-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="upload-dropzone" id="drop-zone" onclick="document.getElementById('resume').click()">
+                    <div class="upload-icon-circle">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h3 style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
+                        Drag & Drop your resume here
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">or</p>
+                    
+                    <button type="button" class="btn btn-primary btn-pill" style="padding: 0.65rem 1.75rem;">
+                        <i class="fa-solid fa-folder-open"></i> Choose File
+                    </button>
+                    
+                    <div style="font-size: 0.8rem; color: var(--text-light); margin-top: 1rem;">
+                        Supports PDF, DOC, DOCX (Max 5MB)
+                    </div>
+
+                    <input type="file" id="resume" name="resume" accept=".pdf,.docx,.doc" required style="display: none;" onchange="handleFileSelect(this)">
+                </div>
+
+                <div id="file-preview" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 1rem; margin-top: 1.25rem; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fa-solid fa-file-pdf" style="font-size: 1.5rem; color: var(--primary);"></i>
+                        <div>
+                            <div id="file-name-display" style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);"></div>
+                            <div id="file-size-display" style="font-size: 0.78rem; color: var(--text-muted);">Ready for analysis</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 1.2rem;"></i>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 0.85rem; font-size: 1rem; border-radius: var(--radius-md);">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Resume Now
+                </button>
+            </form>
+        </div>
+
+        <!-- Recently Uploaded Table -->
+        <div class="card-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin: 0;">Recently Uploaded</h3>
+                <span style="font-size: 0.82rem; color: var(--primary); font-weight: 600;">View All <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Upload Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if current_user.resumes %}
+                        {% for r in current_user.resumes %}
+                        <tr>
+                            <td style="font-weight: 600; color: var(--text-main);">
+                                <i class="fa-regular fa-file-pdf" style="color: var(--danger); margin-right: 0.4rem;"></i>
+                                {{ r.filename if r.filename else 'Resume_Parsed.pdf' }}
+                            </td>
+                            <td style="color: var(--text-muted);">
+                                {{ r.upload_date.strftime('%b %d, %Y') if r.upload_date else 'Recent' }}
+                            </td>
+                            <td>
+                                <span class="badge-pill badge-match-high">Analyzed</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">View Result</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td style="font-weight: 600; color: var(--text-main);">
+                                <i class="fa-regular fa-file-pdf" style="color: var(--danger); margin-right: 0.4rem;"></i>
+                                Sample_Resume.pdf
+                            </td>
+                            <td style="color: var(--text-muted);">Today</td>
+                            <td><span class="badge-pill badge-match-high">Analyzed</span></td>
+                            <td><a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">View Result</a></td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Sidebar Column: Tips & Next Steps -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Tips Card -->
+        <div class="card-panel" style="background: #eff6ff; border-color: #bfdbfe;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                <i class="fa-solid fa-lightbulb" style="font-size: 1.35rem; color: var(--primary);"></i>
+                <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; margin: 0;">Tips for a Better Resume</h4>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.88rem; color: #1e3a8a;">
+                <div><i class="fa-solid fa-circle-check" style="color: var(--primary); margin-right: 0.4rem;"></i> Use a clear and professional format</div>
+                <div><i class="fa-solid fa-circle-check" style="color: var(--primary); margin-right: 0.4rem;"></i> Include your skills, experience, and education</div>
+                <div><i class="fa-solid fa-circle-check" style="color: var(--primary); margin-right: 0.4rem;"></i> Keep your resume concise (1–2 pages)</div>
+                <div><i class="fa-solid fa-circle-check" style="color: var(--primary); margin-right: 0.4rem;"></i> Use PDF or DOCX for best results</div>
+            </div>
+        </div>
+
+        <!-- Supported File Types -->
+        <div class="card-panel">
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Supported File Types</h4>
+            <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+                <div style="padding: 0.6rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-sm); text-align: center; flex: 1;">
+                    <i class="fa-solid fa-file-pdf" style="color: var(--danger); font-size: 1.25rem; display: block; margin-bottom: 0.2rem;"></i>
+                    <span style="font-size: 0.78rem; font-weight: 700; color: #991b1b;">.pdf</span>
+                </div>
+                <div style="padding: 0.6rem 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); text-align: center; flex: 1;">
+                    <i class="fa-solid fa-file-word" style="color: var(--primary); font-size: 1.25rem; display: block; margin-bottom: 0.2rem;"></i>
+                    <span style="font-size: 0.78rem; font-weight: 700; color: #1e40af;">.docx</span>
+                </div>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Maximum file size limit: <strong>5 MB</strong></div>
+        </div>
+
+        <!-- What Happens Next -->
+        <div class="card-panel">
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">What Happens Next?</h4>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; gap: 0.75rem; font-size: 0.85rem;">
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;">1</div>
+                    <div style="color: var(--text-muted);">Our AI will extract your skills, experience and education.</div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; font-size: 0.85rem;">
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;">2</div>
+                    <div style="color: var(--text-muted);">We'll analyze your profile and calculate your match score.</div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; font-size: 0.85rem;">
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;">3</div>
+                    <div style="color: var(--text-muted);">You'll get personalized job recommendations and skill gap insights.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Promo Banner -->
+        <div class="card-panel" style="background: #ecfdf5; border-color: #a7f3d0; text-align: center;">
+            <i class="fa-solid fa-rocket" style="font-size: 1.5rem; color: var(--success); margin-bottom: 0.5rem;"></i>
+            <h5 style="font-size: 0.95rem; font-weight: 700; color: #065f46; margin-bottom: 0.2rem;">Better resume. More opportunities.</h5>
+            <p style="font-size: 0.8rem; color: #047857; margin: 0;">Let AI work for your career.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function handleFileSelect(input) {
+    if (input.files && input.files[0]) {
+        var file = input.files[0];
+        document.getElementById('file-name-display').innerText = file.name;
+        document.getElementById('file-size-display').innerText = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        document.getElementById('file-preview').style.display = 'flex';
+    }
+}
+</script>
 {% endblock %}

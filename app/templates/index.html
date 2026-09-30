@@ -1,14 +1,234 @@
 {% extends "base.html" %}
-{% block content %}
-<div class="glass-card" style="text-align: center; padding: 4rem 2rem; margin-top: 5rem;">
-    <h1 style="font-size: 3.5rem; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Land Your Dream Job with AI</h1>
-    <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 2rem;">Upload your resume, and our AI will extract your skills, match you with live job openings, and provide actionable feedback on missing requirements.</p>
-    
-    {% if current_user.is_authenticated %}
-        <a href="{{ url_for('resume.upload') }}" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume</a>
-    {% else %}
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;">Get Started for Free</a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; margin-left: 1rem;">Login</a>
-    {% endif %}
-</div>
+
+{% block content_standalone %}
+<!-- Hero Section -->
+<section class="hero-wrapper">
+    <div>
+        <div class="hero-tag">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI-Powered Job Search
+        </div>
+        <h1 class="hero-headline">Land your dream job <span>with AI</span></h1>
+        <p class="hero-subtitle">
+            Upload your resume, get instant AI analysis, find the best job matches, and discover what skills to build next. Your next opportunity is just a few clicks away.
+        </p>
+        <div class="hero-cta-group">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-pill" style="padding: 0.9rem 2.2rem; font-size: 1rem;">
+                    Go to Dashboard <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-pill" style="padding: 0.9rem 2.2rem; font-size: 1rem;">
+                    Get Started <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-pill" style="padding: 0.9rem 2.2rem; font-size: 1rem;">
+                    Login
+                </a>
+            {% endif %}
+        </div>
+        <div style="margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-muted);">
+            Already have an account? <a href="{{ url_for('auth.login') }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">Login</a>
+        </div>
+    </div>
+
+    <!-- Hero Interactive Cards Stack -->
+    <div class="hero-mock-stack">
+        <div style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 1rem;">
+            <!-- Card 1: Resume Analysis -->
+            <div class="hero-card-preview">
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-main);">Resume Analysis</div>
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+                    <div style="position: relative; width: 68px; height: 68px;">
+                        <svg width="68" height="68" viewBox="0 0 36 36" class="circular-chart">
+                            <path class="circle-bg" stroke="#e2e8f0" stroke-width="3.5" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle" stroke="#10b981" stroke-dasharray="92, 100" stroke-width="3.5" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; color: #10b981;">
+                            92%
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">Overall Match</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">Verified profile</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; color: var(--text-main); font-weight: 500;">
+                    <div><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 0.4rem;"></i> Skills Extracted</div>
+                    <div><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 0.4rem;"></i> Experience Analysis</div>
+                    <div><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 0.4rem;"></i> Education Analysis</div>
+                    <div><i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 0.4rem;"></i> Recommendations</div>
+                </div>
+            </div>
+
+            <!-- Card 2: Top Job Matches -->
+            <div class="hero-card-preview">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Top Job Matches</div>
+                    <span style="font-size: 0.78rem; color: var(--primary); font-weight: 600;">View All <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+
+                <div class="mock-job-row">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="mock-company-icon" style="background: #ea4335;">G</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.85rem;">Machine Learning Engineer</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Google • Remote</div>
+                        </div>
+                    </div>
+                    <span class="badge-pill badge-match-high">92% Match</span>
+                </div>
+
+                <div class="mock-job-row">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="mock-company-icon" style="background: #ff9900;">A</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.85rem;">Data Scientist</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Amazon • New York, NY</div>
+                        </div>
+                    </div>
+                    <span class="badge-pill badge-match-high">87% Match</span>
+                </div>
+
+                <div class="mock-job-row" style="margin-bottom: 0;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="mock-company-icon" style="background: #00a4ef;">M</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.85rem;">AI Engineer</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Microsoft • Redmond, WA</div>
+                        </div>
+                    </div>
+                    <span class="badge-pill badge-match-high">83% Match</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Powerful Features Section -->
+<section id="features" style="padding: 5rem 3rem; background: white;">
+    <div style="text-align: center; max-width: 600px; margin: 0 auto 3.5rem;">
+        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">Powerful Features</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem;">Everything you need to get hired, faster.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto;">
+        <!-- Card 1 -->
+        <div class="card-panel" style="text-align: left;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.25rem;">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-heading);">Upload Resume</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                Extract skills, education, and experience information instantly with our AI parser.
+            </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card-panel" style="text-align: left;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: #d1fae5; color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.25rem;">
+                <i class="fa-solid fa-crosshairs"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-heading);">AI Job Matching</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                Find the best job matches calculated using Sentence-BERT semantic similarity.
+            </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="card-panel" style="text-align: left;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.25rem;">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-heading);">Skill-Gap Analysis</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                See exactly what skills you're missing for your target roles with direct learning links.
+            </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="card-panel" style="text-align: left;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: #ffedd5; color: #ea580c; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.25rem;">
+                <i class="fa-solid fa-bookmark"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-heading);">Save & Apply</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                Keep your favorite jobs organized in your dashboard and apply with confidence.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works" style="padding: 5rem 3rem; background: var(--bg-app);">
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+        <div>
+            <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">How It Works</h2>
+            <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2.5rem;">Get from your resume to your next job in 3 simple steps.</p>
+
+            <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+                <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0;">
+                        1
+                    </div>
+                    <div>
+                        <h4 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">Upload Resume</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Upload your CV in PDF or DOCX format and let AI extract your skills.</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0;">
+                        2
+                    </div>
+                    <div>
+                        <h4 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">Get Matched</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Find top jobs scored against your profile with matched and missing skill breakdowns.</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: #9333ea; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0;">
+                        3
+                    </div>
+                    <div>
+                        <h4 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">Apply & Grow</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Save your favorite positions and follow custom learning links for any missing skills.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample Match Card Preview -->
+        <div class="card-panel">
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.25rem;">Sample Match Score</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">See how well your profile matches with real job listings.</div>
+
+            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <div class="mock-company-icon" style="background: #ea4335;">G</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.95rem;">Machine Learning Engineer</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> Google • Remote</div>
+                        </div>
+                    </div>
+                    <span class="badge-pill badge-match-high">92% Match</span>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem;">
+                    <span class="badge-pill badge-skill-extracted">Python</span>
+                    <span class="badge-pill badge-skill-extracted">TensorFlow</span>
+                    <span class="badge-pill badge-skill-extracted">Scikit-learn</span>
+                    <span class="badge-pill badge-skill-missing">Docker</span>
+                    <span class="badge-pill badge-skill-missing">Kubernetes</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.85rem;">
+                    <span style="font-size: 0.82rem; color: var(--primary); font-weight: 600;">View Details <i class="fa-solid fa-arrow-right"></i></span>
+                    <button class="btn btn-primary btn-sm btn-pill">Apply Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

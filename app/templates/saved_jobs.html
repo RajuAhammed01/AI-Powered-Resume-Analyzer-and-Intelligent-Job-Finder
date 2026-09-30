@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Page Header -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <div class="hero-tag" style="background: #ffedd5; color: #ea580c;">
+            <i class="fa-solid fa-bookmark"></i> Your Bookmarks
+        </div>
+        <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+            Saved Jobs
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+            Keep track of your favorite positions and apply whenever you're ready.
+        </p>
+    </div>
+
+    <a href="{{ url_for('jobs.results') }}" class="btn btn-primary">
+        <i class="fa-solid fa-magnifying-glass"></i> Explore More Jobs
+    </a>
+</div>
+
+<!-- Saved Jobs Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
+    {% for job in saved_jobs %}
+    <div class="card-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <div class="mock-company-icon" style="background: #2563eb; width: 44px; height: 44px; font-size: 1.1rem;">
+                        {{ job.company[0] if job.company else 'C' }}
+                    </div>
+                    <div>
+                        <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">
+                            {{ job.job_title }}
+                        </h3>
+                        <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">
+                            <i class="fa-solid fa-building"></i> {{ job.company }}
+                        </div>
+                    </div>
+                </div>
+
+                <span class="badge-pill badge-match-high">
+                    {{ job.match_score }}% Match
+                </span>
+            </div>
+
+            <div style="display: flex; gap: 1rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+                <span><i class="fa-solid fa-location-dot"></i> {{ job.location }}</span>
+                <span><i class="fa-solid fa-clock"></i> {{ job.employment_type }}</span>
+            </div>
+
+            <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 1.25rem;">
+                Saved on {{ job.saved_date.strftime('%b %d, %Y') if job.saved_date else 'Recently' }}
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <form method="POST" action="{{ url_for('jobs.remove_saved_job', id=job.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger-border);">
+                    <i class="fa-solid fa-trash"></i> Remove
+                </button>
+            </form>
+
+            <a href="{{ job.apply_link if job.apply_link else '#' }}" target="_blank" class="btn btn-primary btn-sm btn-pill">
+                Apply Now <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="card-panel" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+        <i class="fa-solid fa-bookmark" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+        <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700;">No saved jobs yet</h2>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Click the bookmark icon on any job card to save it for later.</p>
+        <a href="{{ url_for('jobs.results') }}" class="btn btn-primary">Find Recommended Jobs</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

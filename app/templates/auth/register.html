@@ -1,10 +1,115 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>Register</h2>
-<form method="POST">
-	<input type="text" name="name" placeholder="Name" required><br>
-	<input type="email" name="email" placeholder="Email" required><br>
-	<input type="password" name="password" placeholder="Password" required><br>
-	<button type="submit">Register</button>
-</form>
+
+{% block content_standalone %}
+<div class="auth-page-wrapper">
+    <!-- Left Hero Graphic Pane -->
+    <div class="auth-hero-pane">
+        <div style="max-width: 480px; margin: 0 auto;">
+            <div class="hero-tag" style="background: #dbeafe; color: #2563eb;">
+                <i class="fa-solid fa-user-plus"></i> Create Your Account
+            </div>
+            
+            <h1 style="font-family: var(--font-heading); font-size: 2.6rem; font-weight: 800; line-height: 1.15; margin-bottom: 1rem; color: var(--text-main);">
+                Join ResumeAI and <span style="color: var(--primary);">build your future</span>
+            </h1>
+            
+            <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2.5rem; line-height: 1.6;">
+                Upload your resume, get AI-powered insights, find the best job matches, and take the next step towards your dream career.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2.5rem;">
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">AI-Powered Analysis</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Extract skills, experience, and key insights from your resume.</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #d1fae5; color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">Smart Job Matching</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Find jobs that match your skills and preferences accurately.</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">Skill Gap Suggestions</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Get personalized learning paths to improve your profile.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--primary); font-style: italic;">
+                Better Skills, Bigger Opportunities
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Register Form Pane -->
+    <div class="auth-form-pane">
+        <div class="auth-card-box">
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; margin-bottom: 0.4rem; color: var(--text-main);">
+                Create an Account
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.925rem; margin-bottom: 2rem;">
+                Join ResumeAI to get started with AI-powered job matching and resume analysis.
+            </p>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-field">
+                    <label class="form-label" for="name">Full Name</label>
+                    <div class="input-icon-group">
+                        <i class="fa-regular fa-user field-icon"></i>
+                        <input type="text" id="name" name="name" class="input-control" placeholder="Enter your full name" required>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="email">Email Address</label>
+                    <div class="input-icon-group">
+                        <i class="fa-regular fa-envelope field-icon"></i>
+                        <input type="email" id="email" name="email" class="input-control" placeholder="you@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-icon-group">
+                        <i class="fa-solid fa-lock field-icon"></i>
+                        <input type="password" id="password" name="password" class="input-control" placeholder="Create a strong password" minlength="6" required>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">Must be at least 6 characters long.</div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem; font-size: 0.85rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); cursor: pointer;">
+                        <input type="checkbox" required style="accent-color: var(--primary);"> I agree to the <a href="#" style="color: var(--primary); text-decoration: none;">Terms of Service</a> and <a href="#" style="color: var(--primary); text-decoration: none;">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; border-radius: var(--radius-md);">
+                    Create Account <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <p style="font-size: 0.88rem; color: var(--text-muted);">
+                    Already have an account? <a href="{{ url_for('auth.login') }}" style="color: var(--primary); font-weight: 700; text-decoration: none;">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,9 +1,95 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>Login</h2>
-<form method="POST">
-	<input type="email" name="email" placeholder="Email" required><br>
-	<input type="password" name="password" placeholder="Password" required><br>
-	<button type="submit">Login</button>
-</form>
+
+{% block content_standalone %}
+<div class="auth-page-wrapper">
+    <!-- Left Hero Graphic Pane -->
+    <div class="auth-hero-pane">
+        <div style="max-width: 480px; margin: 0 auto;">
+            <div class="hero-tag" style="background: #dbeafe; color: #2563eb;">
+                <i class="fa-solid fa-user"></i> Welcome Back
+            </div>
+            
+            <h1 style="font-family: var(--font-heading); font-size: 2.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 1rem; color: var(--text-main);">
+                Sign in to your <span style="color: var(--primary);">ResumeAI</span> account
+            </h1>
+            
+            <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2.5rem; line-height: 1.6;">
+                Access your dashboard, track your resume analysis, and find the best job opportunities with AI.
+            </p>
+
+            <!-- Mock Laptop Card Illustration -->
+            <div class="card-panel" style="padding: 1.75rem; background: white; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #ecfdf5; border: 3px solid #10b981; color: #10b981; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem;">
+                            92%
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.95rem;">AI Resume Match</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">Instant Skill Gap & Analysis</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <span class="badge-pill" style="background: #eff6ff; color: #2563eb;"><i class="fa-solid fa-magnifying-glass"></i> AI Job Matching</span>
+                        <span class="badge-pill" style="background: #f3e8ff; color: #9333ea;"><i class="fa-solid fa-chart-bar"></i> Skill Gap Analysis</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Your data is safe with us. We protect your information.
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Login Form Pane -->
+    <div class="auth-form-pane">
+        <div class="auth-card-box">
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; margin-bottom: 0.4rem; color: var(--text-main);">
+                Login
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.925rem; margin-bottom: 2rem;">
+                Enter your email and password to continue.
+            </p>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-field">
+                    <label class="form-label" for="email">Email Address</label>
+                    <div class="input-icon-group">
+                        <i class="fa-regular fa-envelope field-icon"></i>
+                        <input type="email" id="email" name="email" class="input-control" placeholder="you@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-icon-group">
+                        <i class="fa-solid fa-lock field-icon"></i>
+                        <input type="password" id="password" name="password" class="input-control" placeholder="Enter your password" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.88rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); cursor: pointer;">
+                        <input type="checkbox" name="remember" style="accent-color: var(--primary);"> Remember me
+                    </label>
+                    <a href="#" style="color: var(--primary); text-decoration: none; font-weight: 600;">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; border-radius: var(--radius-md);">
+                    Login <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">Don't have an account?</p>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">
+                    Create an account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Page Header -->
+<div style="margin-bottom: 2rem;">
+    <div class="hero-tag" style="background: #dbeafe; color: #2563eb;">
+        <i class="fa-solid fa-user-gear"></i> Account Settings
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+        Profile & Settings
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+        Manage your personal information, account settings, and preferences.
+    </p>
+</div>
+
+<!-- Profile Hero Box & Account Status -->
+<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem; margin-bottom: 2rem;">
+    <!-- Profile Card -->
+    <div class="card-panel" style="display: flex; align-items: center; gap: 1.5rem;">
+        <div style="position: relative;">
+            <div class="user-avatar-badge" style="width: 80px; height: 80px; font-size: 2.2rem; background: #dbeafe; color: var(--primary);">
+                {{ current_user.name[0] if current_user.name else 'U' }}
+            </div>
+            <div style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 2px solid white; cursor: pointer;">
+                <i class="fa-solid fa-camera"></i>
+            </div>
+        </div>
+
+        <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
+                <h2 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                    {{ current_user.name }}
+                </h2>
+                <span class="badge-pill" style="background: #e0f2fe; color: #0284c7;">{{ current_user.title_role if current_user.title_role else 'Job Seeker' }}</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                <div><i class="fa-regular fa-envelope" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.email }}</div>
+                <div><i class="fa-solid fa-phone" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.phone if current_user.phone else '+880 1406 450261' }}</div>
+                <div><i class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.location if current_user.location else 'Shyamoli, Dhaka, Bangladesh' }}</div>
+            </div>
+
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('name').focus();">
+                <i class="fa-solid fa-pen"></i> Edit Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- Account Status Card -->
+    <div class="card-panel" style="background: #eff6ff; border-color: #bfdbfe; display: flex; flex-direction: column; justify-content: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #1e40af; font-size: 1rem;">
+                <i class="fa-solid fa-shield-halved"></i> Account Status
+            </div>
+            <span class="badge-pill badge-match-high">Active</span>
+        </div>
+        <p style="font-size: 0.85rem; color: #1e3a8a; line-height: 1.5; margin: 0;">
+            Your account is in good standing. Keep your profile updated for better job matches.
+        </p>
+    </div>
+</div>
+
+<!-- Main Section Split -->
+<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem;">
+    <!-- Left Personal Information & Password Pane -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <!-- Navigation Sub-Tabs -->
+        <div class="card-panel" style="padding: 1.5rem;">
+            <div style="display: flex; gap: 1.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem; font-weight: 600; font-size: 0.95rem;">
+                <span style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;">
+                    <i class="fa-solid fa-user"></i> Personal Information
+                </span>
+                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-graduation-cap"></i> Education</span>
+                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-gear"></i> Skills</span>
+                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-briefcase"></i> Experience</span>
+                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-sliders"></i> Preferences</span>
+            </div>
+
+            <!-- Personal Information Form -->
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="update_profile">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="name">Full Name</label>
+                        <div class="input-icon-group">
+                            <i class="fa-regular fa-user field-icon"></i>
+                            <input type="text" id="name" name="name" class="input-control" value="{{ current_user.name }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="location">Location</label>
+                        <div class="input-icon-group">
+                            <i class="fa-solid fa-location-dot field-icon"></i>
+                            <input type="text" id="location" name="location" class="input-control" value="{{ current_user.location if current_user.location else 'Shyamoli, Dhaka, Bangladesh' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="email">Email Address</label>
+                        <div class="input-icon-group">
+                            <i class="fa-regular fa-envelope field-icon"></i>
+                            <input type="email" id="email" name="email" class="input-control" value="{{ current_user.email }}" readonly style="background: var(--bg-subtle);">
+                        </div>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="date_of_birth">Date of Birth</label>
+                        <div class="input-icon-group">
+                            <i class="fa-regular fa-calendar field-icon"></i>
+                            <input type="text" id="date_of_birth" name="date_of_birth" class="input-control" value="{{ current_user.date_of_birth if current_user.date_of_birth else 'Not provided' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="phone">Phone Number</label>
+                        <div class="input-icon-group">
+                            <i class="fa-solid fa-phone field-icon"></i>
+                            <input type="text" id="phone" name="phone" class="input-control" value="{{ current_user.phone if current_user.phone else '+880 1406 450261' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="linkedin_url">LinkedIn Profile</label>
+                        <div class="input-icon-group">
+                            <i class="fa-brands fa-linkedin field-icon"></i>
+                            <input type="text" id="linkedin_url" name="linkedin_url" class="input-control" value="{{ current_user.linkedin_url if current_user.linkedin_url else 'linkedin.com/in/rajuahammed86' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Change Password Card -->
+        <div class="card-panel">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-lock" style="color: var(--primary);"></i> Change Password
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                Keep your account secure by using a strong password.
+            </p>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="change_password">
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem;">
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="current_password">Current Password</label>
+                        <input type="password" id="current_password" name="current_password" class="input-control" style="padding-left: 1rem;" placeholder="Enter current password" required>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="new_password">New Password</label>
+                        <input type="password" id="new_password" name="new_password" class="input-control" style="padding-left: 1rem;" placeholder="Enter new password" required>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="confirm_password">Confirm Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="input-control" style="padding-left: 1rem;" placeholder="Confirm new password" required>
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-key"></i> Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Sidebar Settings Pane -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Quick Actions Card -->
+        <div class="card-panel">
+            <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-bolt" style="color: var(--primary);"></i> Quick Actions
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.88rem;">
+                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Edit Profile</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
+                </a>
+
+                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-lock" style="color: var(--primary);"></i> Change Password</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
+                </a>
+
+                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-bell" style="color: var(--primary);"></i> Manage Notifications</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
+                </a>
+
+                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-download" style="color: var(--primary);"></i> Download My Data</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Notifications Settings Card -->
+        <div class="card-panel">
+            <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-bell" style="color: var(--primary);"></i> Notifications
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Get updates about jobs, recommendations and more.
+            </p>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="update_settings">
+
+                <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <div>
+                            <strong style="color: var(--text-main);">Job Recommendations</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">Receive personalized job suggestions</div>
+                        </div>
+                        <input type="checkbox" name="notifications_enabled" {% if current_user.notifications_enabled %}checked{% endif %} style="accent-color: var(--primary);">
+                    </label>
+
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <div>
+                            <strong style="color: var(--text-main);">Application Updates</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">Get notified about your applications</div>
+                        </div>
+                        <input type="checkbox" checked style="accent-color: var(--primary);">
+                    </label>
+
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <div>
+                            <strong style="color: var(--text-main);">News & Tips</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">Latest career advice and resources</div>
+                        </div>
+                        <input type="checkbox" checked style="accent-color: var(--primary);">
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <!-- Language & Appearance Card -->
+        <div class="card-panel">
+            <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-palette" style="color: var(--primary);"></i> Language & Appearance
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Customize your experience.
+            </p>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="update_settings">
+
+                <div class="form-field" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="font-size: 0.85rem;"><i class="fa-solid fa-globe"></i> Language</label>
+                    <select name="language" class="input-control" style="font-size: 0.85rem;">
+                        <option value="English" selected>English</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                    </select>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 1rem;">
+                    <label class="form-label" style="font-size: 0.85rem;"><i class="fa-solid fa-sun"></i> Theme</label>
+                    <select name="theme" class="input-control" style="font-size: 0.85rem;">
+                        <option value="Light" selected>Light</option>
+                        <option value="Dark">Dark</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-outline btn-sm" style="width: 100%;">
+                    Save Appearance
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

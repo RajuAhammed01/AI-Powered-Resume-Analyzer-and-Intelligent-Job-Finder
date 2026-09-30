@@ -3,45 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume & Job Finder</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>{% block title %}ResumeAI — AI-Powered Resume & Job Finder{% endblock %}</title>
+    <!-- Google Fonts & FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <nav>
-        <a href="{{ url_for('main.index') }}" class="nav-brand">
-            <i class="fa-solid fa-brain"></i> ResumeAI
+
+{% if current_user.is_authenticated and not is_auth_page %}
+    <!-- Logged In Layout with Dark Sidebar -->
+    <div class="app-layout">
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo-icon">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <a href="{{ url_for('main.dashboard') }}" class="brand-title">Resume<span>AI</span></a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('main.dashboard') }}" class="nav-item-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('resume.upload') }}" class="nav-item-link {% if request.endpoint in ['resume.upload', 'resume.resume_analysis'] %}active{% endif %}">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Resume</span>
+                </a>
+                <a href="{{ url_for('jobs.results') }}" class="nav-item-link {% if request.endpoint in ['jobs.results', 'jobs.job_detail'] %}active{% endif %}">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>Job Recommendations</span>
+                </a>
+                <a href="{{ url_for('jobs.saved_jobs') }}" class="nav-item-link {% if request.endpoint == 'jobs.saved_jobs' %}active{% endif %}">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Saved Jobs</span>
+                </a>
+                <a href="{{ url_for('preferences.preferences') }}" class="nav-item-link {% if request.endpoint == 'preferences.preferences' %}active{% endif %}">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Job Preferences</span>
+                </a>
+                <a href="{{ url_for('main.profile') }}" class="nav-item-link {% if request.endpoint == 'main.profile' %}active{% endif %}">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Profile & Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-promo-card">
+                <h5><i class="fa-solid fa-sparkles" style="color: #60a5fa;"></i> Build your future</h5>
+                <p>AI-powered matching finds live opportunities tailored to your skills.</p>
+            </div>
+
+            <div style="padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                <a href="{{ url_for('auth.logout') }}" class="nav-item-link" style="color: #ef4444;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="main-wrapper">
+            <header class="app-topbar">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">
+                        {% if request.endpoint == 'main.dashboard' %}Dashboard Overview
+                        {% elif request.endpoint in ['resume.upload', 'resume.resume_analysis'] %}Resume Analysis & Upload
+                        {% elif request.endpoint in ['jobs.results', 'jobs.job_detail'] %}Job Recommendations
+                        {% elif request.endpoint == 'preferences.preferences' %}Job Preferences
+                        {% elif request.endpoint == 'main.profile' %}Profile & Settings
+                        {% else %}ResumeAI Application{% endif %}
+                    </span>
+                </div>
+
+                <div class="topbar-user">
+                    <a href="{{ url_for('resume.upload') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-plus"></i> Upload Resume
+                    </a>
+                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">
+                        <i class="fa-solid fa-magnifying-glass"></i> Find Jobs
+                    </a>
+                    
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-left: 0.5rem; padding-left: 1rem; border-left: 1px solid var(--border-color);">
+                        <div class="user-avatar-badge">
+                            {{ current_user.name[0] if current_user.name else 'U' }}
+                        </div>
+                        <div>
+                            <div class="user-name-text">{{ current_user.name }}</div>
+                            <div class="user-name-sub">{{ current_user.email }}</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="content-container">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="flash-alert-container">
+                            {% for message in messages %}
+                                <div class="alert-message">
+                                    <span><i class="fa-solid fa-circle-info" style="margin-right: 0.5rem;"></i> {{ message }}</span>
+                                    <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="this.parentElement.remove();"></i>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+{% else %}
+    <!-- Standalone Landing / Auth Navigation -->
+    <header class="landing-nav">
+        <a href="{{ url_for('main.index') }}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
+            <div class="brand-logo-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <span class="brand-title">Resume<span>AI</span></span>
         </a>
-        <div class="nav-links">
+
+        <div class="landing-links">
             <a href="{{ url_for('main.index') }}">Home</a>
+            <a href="{{ url_for('main.index') }}#features">Features</a>
+            <a href="{{ url_for('main.index') }}#how-it-works">How It Works</a>
+            <a href="{{ url_for('main.index') }}#about">About</a>
+
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-                <a href="{{ url_for('resume.upload') }}">Upload Resume</a>
-                <a href="{{ url_for('jobs.results') }}">Find Jobs</a>
-                <a href="{{ url_for('preferences.preferences') }}">Preferences</a>
-                <a href="{{ url_for('auth.logout') }}" class="btn nav-btn">Logout</a>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-pill">Dashboard</a>
             {% else %}
-                <a href="{{ url_for('auth.login') }}">Login</a>
-                <a href="{{ url_for('auth.register') }}" class="btn nav-btn">Get Started</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-pill">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-pill">Get Started</a>
             {% endif %}
         </div>
-    </nav>
-    
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-messages">
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="content-container" style="padding-bottom: 0;">
+                <div class="flash-alert-container">
                     {% for message in messages %}
-                        <div class="alert">
-                            {{ message }}
-                            <i class="fa-solid fa-times" style="cursor: pointer;" onclick="this.parentElement.style.display='none';"></i>
+                        <div class="alert-message">
+                            <span><i class="fa-solid fa-circle-info" style="margin-right: 0.5rem;"></i> {{ message }}</span>
+                            <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="this.parentElement.remove();"></i>
                         </div>
                     {% endfor %}
                 </div>
-            {% endif %}
-        {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main style="flex: 1;">
+        {% block content_standalone %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="brand-logo-icon" style="width: 32px; height: 32px; font-size: 1rem;">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div>
+                <strong style="color: white;">ResumeAI</strong>
+                <div style="font-size: 0.78rem; color: #94a3b8;">Smarter resumes. Better opportunities.</div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 2rem;">
+            <a href="#">About</a>
+            <a href="#">GitHub</a>
+            <a href="#">License</a>
+        </div>
+        <div>
+            © 2026 ResumeAI. All rights reserved.
+        </div>
+    </footer>
+{% endif %}
+
 </body>
 </html>

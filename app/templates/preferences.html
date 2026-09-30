@@ -1,10 +1,203 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1>Job Preferences</h1>
-<form method="POST">
-	<input type="text" name="target_role" placeholder="Target role" value="{{ pref.target_role if pref else '' }}" required>
-	<input type="text" name="location" placeholder="Location" value="{{ pref.location if pref else '' }}" required>
-	<input type="text" name="expected_salary" placeholder="Expected salary" value="{{ pref.expected_salary if pref else '' }}">
-	<button type="submit">Save preferences</button>
-</form>
+<div style="margin-bottom: 1.5rem;">
+    <a href="{{ url_for('main.dashboard') }}" style="font-size: 0.88rem; color: var(--primary); text-decoration: none; font-weight: 600;">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
+    <div style="width: 48px; height: 48px; border-radius: 12px; background: #dbeafe; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">
+        <i class="fa-solid fa-sliders"></i>
+    </div>
+    <div>
+        <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.2rem;">
+            Job Preferences
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+            Tell us what kind of jobs you're looking for. This helps us find the best matches for your skills, experience, and goals.
+        </p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem;">
+    <!-- Main Left Form Column -->
+    <div class="card-panel">
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- 1. Job Title / Role -->
+            <div style="margin-bottom: 2rem;">
+                <label class="form-label" style="font-size: 1rem;">
+                    <i class="fa-solid fa-briefcase" style="color: var(--primary); margin-right: 0.4rem;"></i> Job Title / Role
+                </label>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Select the job roles you're interested in.</div>
+                
+                <input type="text" name="target_role" class="input-control" style="padding-left: 1rem;" value="{{ pref.target_role if pref else 'Machine Learning Engineer, Data Scientist' }}" placeholder="e.g. Machine Learning Engineer, Data Scientist" required>
+            </div>
+
+            <!-- 2. Location Preference -->
+            <div style="margin-bottom: 2rem;">
+                <label class="form-label" style="font-size: 1rem;">
+                    <i class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 0.4rem;"></i> Location Preference
+                </label>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Where would you like to work?</div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                    <label style="border: 2px solid {% if not pref or pref.location_preference == 'Any Location' %}var(--primary){% else %}var(--border-color){% endif %}; background: {% if not pref or pref.location_preference == 'Any Location' %}#eff6ff{% else %}white{% endif %}; border-radius: var(--radius-md); padding: 1rem; text-align: center; cursor: pointer;">
+                        <input type="radio" name="location_preference" value="Any Location" {% if not pref or pref.location_preference == 'Any Location' %}checked{% endif %} style="display: none;">
+                        <i class="fa-solid fa-globe" style="color: var(--primary); font-size: 1.25rem; display: block; margin-bottom: 0.4rem;"></i>
+                        <span style="font-weight: 700; font-size: 0.9rem;">Any Location</span>
+                    </label>
+
+                    <label style="border: 2px solid {% if pref and pref.location_preference == 'Remote Only' %}var(--primary){% else %}var(--border-color){% endif %}; background: {% if pref and pref.location_preference == 'Remote Only' %}#eff6ff{% else %}white{% endif %}; border-radius: var(--radius-md); padding: 1rem; text-align: center; cursor: pointer;">
+                        <input type="radio" name="location_preference" value="Remote Only" {% if pref and pref.location_preference == 'Remote Only' %}checked{% endif %} style="display: none;">
+                        <i class="fa-solid fa-laptop-house" style="color: var(--primary); font-size: 1.25rem; display: block; margin-bottom: 0.4rem;"></i>
+                        <span style="font-weight: 700; font-size: 0.9rem;">Remote Only</span>
+                    </label>
+
+                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 1rem;">
+                        <span style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Specific Location</span>
+                        <input type="text" name="location" class="input-control" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" value="{{ pref.location if pref else 'Remote' }}" placeholder="e.g. New York, Dhaka">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Experience Level -->
+            <div style="margin-bottom: 2rem;">
+                <label class="form-label" style="font-size: 1rem;">
+                    <i class="fa-solid fa-user-graduate" style="color: var(--primary); margin-right: 0.4rem;"></i> Experience Level
+                </label>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Your preferred level of experience.</div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem;">
+                    {% for lvl in ['Entry Level (0-1 years)', 'Junior (1-3 years)', 'Mid Level (3-5 years)', 'Senior (5+ years)'] %}
+                    <label style="border: 1px solid {% if pref and pref.experience_level == lvl %}var(--primary){% else %}var(--border-color){% endif %}; background: {% if pref and pref.experience_level == lvl %}#eff6ff{% else %}white{% endif %}; border-radius: var(--radius-md); padding: 0.85rem 0.5rem; text-align: center; cursor: pointer;">
+                        <input type="radio" name="experience_level" value="{{ lvl }}" {% if not pref and loop.first or (pref and pref.experience_level == lvl) %}checked{% endif %}>
+                        <span style="font-weight: 600; font-size: 0.82rem; display: block; margin-top: 0.2rem;">{{ lvl }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 4. Salary Range -->
+            <div style="margin-bottom: 2rem;">
+                <label class="form-label" style="font-size: 1rem;">
+                    <i class="fa-solid fa-dollar-sign" style="color: var(--primary); margin-right: 0.4rem;"></i> Salary Range
+                </label>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Your expected salary (optional).</div>
+
+                <select name="expected_salary" class="input-control" style="padding-left: 1rem;">
+                    <option value="Any" {% if not pref or pref.expected_salary == 'Any' %}selected{% endif %}>Any Salary Range</option>
+                    <option value="$50,000 - $80,000" {% if pref and pref.expected_salary == '$50,000 - $80,000' %}selected{% endif %}>$50,000 - $80,000</option>
+                    <option value="$80,000 - $120,000" {% if pref and pref.expected_salary == '$80,000 - $120,000' %}selected{% endif %}>$80,000 - $120,000</option>
+                    <option value="$120,000+" {% if pref and pref.expected_salary == '$120,000+' %}selected{% endif %}>$120,000+</option>
+                </select>
+            </div>
+
+            <!-- 5. Job Type -->
+            <div style="margin-bottom: 2rem;">
+                <label class="form-label" style="font-size: 1rem;">
+                    <i class="fa-solid fa-clock" style="color: var(--primary); margin-right: 0.4rem;"></i> Job Type
+                </label>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">What type of work arrangement do you prefer?</div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem;">
+                    {% for type in ['Full-time', 'Part-time', 'Contract', 'Internship'] %}
+                    <label style="border: 1px solid {% if pref and pref.job_type == type %}var(--primary){% else %}var(--border-color){% endif %}; background: {% if pref and pref.job_type == type %}#eff6ff{% else %}white{% endif %}; border-radius: var(--radius-md); padding: 0.85rem 0.5rem; text-align: center; cursor: pointer;">
+                        <input type="radio" name="job_type" value="{{ type }}" {% if not pref and loop.first or (pref and pref.job_type == type) %}checked{% endif %}>
+                        <span style="font-weight: 600; font-size: 0.85rem; display: block; margin-top: 0.2rem;">{{ type }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 6. Preferred Skills -->
+            <div style="margin-bottom: 2.5rem;">
+                <label class="form-label" style="font-size: 1rem;">
+                    <i class="fa-solid fa-code" style="color: var(--primary); margin-right: 0.4rem;"></i> Preferred Skills (Optional)
+                </label>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Add specific skills you want to focus on (e.g. Python, TensorFlow, SQL).</div>
+
+                <input type="text" name="preferred_skills" class="input-control" style="padding-left: 1rem;" value="Python, TensorFlow, scikit-learn, SQL" placeholder="Python, TensorFlow, SQL...">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <button type="submit" name="action" value="reset" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button type="submit" name="action" value="save" class="btn btn-primary" style="padding: 0.8rem 2rem;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Preferences
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right Summary Sidebar -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Your Current Preferences Card -->
+        <div class="card-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-bullseye" style="color: var(--primary);"></i> Your Current Preferences
+                </h3>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.88rem;">
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-briefcase" style="color: var(--text-light); margin-right: 0.4rem;"></i> Job Roles</div>
+                    <div style="color: var(--text-muted);">{{ pref.target_role if pref else 'Machine Learning Engineer, Data Analyst, Data Scientist' }}</div>
+                </div>
+
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-location-dot" style="color: var(--text-light); margin-right: 0.4rem;"></i> Location</div>
+                    <div style="color: var(--text-muted);">{{ pref.location if pref else 'Remote' }}</div>
+                </div>
+
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-user-graduate" style="color: var(--text-light); margin-right: 0.4rem;"></i> Experience Level</div>
+                    <div style="color: var(--text-muted);">{{ pref.experience_level if pref else 'Entry Level (0-1 years)' }}</div>
+                </div>
+
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-dollar-sign" style="color: var(--text-light); margin-right: 0.4rem;"></i> Salary Range</div>
+                    <div style="color: var(--text-muted);">{{ pref.expected_salary if pref else 'Any' }}</div>
+                </div>
+
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-clock" style="color: var(--text-light); margin-right: 0.4rem;"></i> Job Type</div>
+                    <div style="color: var(--text-muted);">{{ pref.job_type if pref else 'Full-time' }}</div>
+                </div>
+
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-code" style="color: var(--text-light); margin-right: 0.4rem;"></i> Key Skills</div>
+                    <div style="color: var(--text-muted);">Python, TensorFlow, scikit-learn, SQL</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pro Tip Card -->
+        <div class="card-panel" style="background: #eff6ff; border-color: #bfdbfe;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-lightbulb" style="font-size: 1.25rem; color: var(--primary);"></i>
+                <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: #1e40af; margin: 0;">Pro Tip</h4>
+            </div>
+            <p style="font-size: 0.85rem; color: #1e3a8a; margin: 0; line-height: 1.5;">
+                The more specific you are, the better your job matches will be!
+            </p>
+        </div>
+
+        <!-- Goals Card -->
+        <div class="card-panel" style="background: var(--bg-subtle); text-align: center;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: #dbeafe; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 0.75rem;">
+                <i class="fa-solid fa-crosshairs"></i>
+            </div>
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem;">Your Goals, Our Priority</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                Set your preferences today and get personalized job recommendations that match your career goals.
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

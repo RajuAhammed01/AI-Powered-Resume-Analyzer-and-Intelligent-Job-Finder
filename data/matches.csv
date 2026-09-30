@@ -1,0 +1,5 @@
+pair_id,resume_id,job_id,human_relevance,human_match_score,matched_skills,missing_skills,notes
+p001,r001,j001,3,100,"python|sql|django","", "Perfect match"
+p002,r001,j002,1,30,"python","pandas|machine learning", "Partial match, missing ML"
+p003,r002,j002,3,100,"python|pandas|machine learning","", "Perfect match"
+p004,r003,j003,3,100,"react|javascript","", "Perfect match"

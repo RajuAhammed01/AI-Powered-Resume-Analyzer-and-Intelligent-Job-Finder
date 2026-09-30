@@ -2,20 +2,37 @@ import json
 import os
 import re
 
-SKILL_FILE = os.path.join(os.getcwd(), "data", "skills.json")
+SKILL_FILE = os.path.join(os.getcwd(), "data", "skill_taxonomy.json")
 
+_TAXONOMY_CACHE = None
 
-def load_skills():
-	with open(SKILL_FILE, encoding="utf-8") as file:
-		data = json.load(file)
-	return [skill for category in data.values() for skill in category]
+def load_taxonomy():
+	global _TAXONOMY_CACHE
+	if _TAXONOMY_CACHE is not None:
+		return _TAXONOMY_CACHE
+	try:
+		with open(SKILL_FILE, encoding="utf-8") as file:
+			_TAXONOMY_CACHE = json.load(file)
+	except FileNotFoundError:
+		_TAXONOMY_CACHE = []
+	return _TAXONOMY_CACHE
 
 
 def extract_skills(text):
 	text_lower = text.lower()
-	found = []
-	for skill in load_skills():
-		pattern = r"(?<!\w)" + re.escape(skill.lower()) + r"(?!\w)"
-		if re.search(pattern, text_lower):
-			found.append(skill.lower())
-	return sorted(set(found))
+	found_canonical = set()
+	taxonomy = load_taxonomy()
+	
+	for entry in taxonomy:
+		canonical = entry.get("canonical_name", "")
+		aliases = entry.get("aliases", [])
+		
+		# Check all aliases and canonical name
+		terms_to_check = [canonical] + aliases
+		for term in terms_to_check:
+			pattern = r"(?<!\w)" + re.escape(term.lower()) + r"(?!\w)"
+			if re.search(pattern, text_lower):
+				found_canonical.add(canonical)
+				break
+				
+	return sorted(list(found_canonical))

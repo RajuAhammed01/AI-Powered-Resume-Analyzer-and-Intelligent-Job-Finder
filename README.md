@@ -54,3 +54,10 @@ pytest
 - Only PDF and DOCX uploads are accepted.
 - Uploads are limited to 5 MB.
 - Secrets and local databases are excluded from Git.
+
+
+## 🔧 Important Setup Notes
+1. Copy .env.example to .env and fill in your API keys.
+2. Run pip install -r requirements.txt to install all dependencies including sentence-transformers, spacy, and Flask-WTF.
+3. The first time you run the application, it will download the Sentence-BERT model (ll-MiniLM-L6-v2, ~80MB) for accurate semantic matching.
+4. If you face database schema errors, delete instance/database.db to let the app recreate the latest schema.

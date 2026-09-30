@@ -1,5 +1,204 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1>{{ job.get('job_title', 'Job details') if job else 'Job details' }}</h1>
-{% if job %}<p>{{ job.get('job_description', '') }}</p>{% else %}<p>Job details are available from the results page.</p>{% endif %}
+<!-- Back Link -->
+<div style="margin-bottom: 1.5rem;">
+    <a href="{{ url_for('jobs.results') }}" style="font-size: 0.88rem; color: var(--primary); text-decoration: none; font-weight: 600;">
+        <i class="fa-solid fa-arrow-left"></i> Back to Recommendations
+    </a>
+</div>
+
+<!-- Header Card -->
+<div class="card-panel" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+        <div style="display: flex; gap: 1.25rem; align-items: center;">
+            <div class="mock-company-icon" style="background: #ea4335; width: 64px; height: 64px; font-size: 1.75rem; border-radius: 16px;">
+                {{ job.get('employer_name', 'G')[0] }}
+            </div>
+            <div>
+                <h1 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                    {{ job.get('job_title', 'Machine Learning Engineer') }}
+                    <i class="fa-solid fa-circle-check" style="color: var(--primary); font-size: 1.25rem;"></i>
+                </h1>
+                <div style="font-size: 1rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    <strong style="color: var(--primary);">{{ job.get('employer_name', 'Google') }}</strong> • <i class="fa-solid fa-location-dot"></i> {{ job.get('job_city', 'Remote') }} • <i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }} • <i class="fa-solid fa-dollar-sign"></i> $80,000 - $120,000 (estimated)
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                    {% for skill in job.get('matched_skills', ['Python', 'TensorFlow', 'scikit-learn', 'Machine Learning', 'Data Analysis']) %}
+                        <span class="badge-pill badge-skill-extracted">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
+            <span class="badge-pill badge-match-high" style="font-size: 1.05rem; padding: 0.5rem 1.2rem;">
+                <i class="fa-solid fa-bullseye"></i> {{ job.get('combined_score', 92) }}% Match
+            </span>
+            <div style="display: flex; gap: 0.75rem;">
+                <a href="{{ job.get('job_apply_link', '#') }}" target="_blank" class="btn btn-primary btn-pill">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply Now
+                </a>
+                <form method="POST" action="{{ url_for('jobs.save_job') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
+                    <input type="hidden" name="company" value="{{ job.get('employer_name', '') }}">
+                    <button type="submit" class="btn btn-outline">
+                        <i class="fa-regular fa-bookmark"></i> Save Job
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main 2-Column Section -->
+<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem;">
+    <!-- Left Details Column -->
+    <div class="card-panel">
+        <!-- Tabs Bar -->
+        <div style="display: flex; gap: 1.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem; font-weight: 600; font-size: 0.95rem;">
+            <span style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;">Overview</span>
+            <span style="color: var(--text-muted); cursor: pointer;">Requirements</span>
+            <span style="color: var(--text-muted); cursor: pointer;">Responsibilities</span>
+            <span style="color: var(--text-muted); cursor: pointer;">About Company</span>
+        </div>
+
+        <!-- Section 1: Job Description -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-file-lines" style="color: var(--primary);"></i> Job Description
+            </h3>
+            <p style="font-size: 0.925rem; color: var(--text-main); line-height: 1.6; margin: 0;">
+                {{ job.get('job_description', 'We are looking for a Machine Learning Engineer to join our team and build scalable ML systems that impact billions of users. You will work on data pipelines, model training, and production deployment using modern ML tools and cloud infrastructure.') }}
+            </p>
+        </div>
+
+        <!-- Section 2: Key Responsibilities -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Key Responsibilities
+            </h3>
+            <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-main); line-height: 1.7;">
+                <li>Design and implement machine learning models and data pipelines.</li>
+                <li>Work with large-scale datasets and perform data preprocessing and feature engineering.</li>
+                <li>Collaborate with product and engineering teams to deploy ML solutions.</li>
+                <li>Monitor model performance and improve systems over time.</li>
+            </ul>
+        </div>
+
+        <!-- Section 3: Requirements -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-user-check" style="color: var(--primary);"></i> Requirements
+            </h3>
+            <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-main); line-height: 1.7;">
+                <li>Bachelor's or Master's degree in Computer Science, AI, or related field.</li>
+                <li>Strong Python skills and experience with ML libraries (scikit-learn, TensorFlow, PyTorch).</li>
+                <li>Experience with data analysis, model training, and evaluation.</li>
+                <li>Good problem-solving skills and a passion for learning.</li>
+                <li>Prior experience with cloud platforms (GCP, AWS, or Azure) is a plus.</li>
+            </ul>
+        </div>
+
+        <!-- Section 4: Why Join Us -->
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 1.25rem;">
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: #1e40af; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-lightbulb"></i> Why Join Us?
+            </h4>
+            <p style="font-size: 0.88rem; color: #1e3a8a; line-height: 1.5; margin: 0;">
+                Work on challenging problems, collaborate with world-class engineers, and make an impact at scale. We offer great benefits, flexible work options, and continuous learning opportunities.
+            </p>
+        </div>
+    </div>
+
+    <!-- Right Sidebar Column -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Company Information Card -->
+        <div class="card-panel">
+            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-building" style="color: var(--primary);"></i> Company Information
+            </h3>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                <div class="mock-company-icon" style="background: #ea4335; width: 42px; height: 42px; font-size: 1.1rem;">
+                    {{ job.get('employer_name', 'G')[0] }}
+                </div>
+                <div>
+                    <strong style="font-size: 1rem; color: var(--text-main);">{{ job.get('employer_name', 'Google') }}</strong>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">Internet & Software</div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.85rem; color: var(--text-muted);">
+                <div><i class="fa-solid fa-users" style="width: 20px; color: var(--primary);"></i> 10,000+ employees</div>
+                <div><i class="fa-solid fa-location-dot" style="width: 20px; color: var(--primary);"></i> Mountain View, CA, USA</div>
+                <div><i class="fa-solid fa-globe" style="width: 20px; color: var(--primary);"></i> <a href="https://careers.google.com" target="_blank" style="color: var(--primary); text-decoration: none;">https://careers.google.com</a></div>
+            </div>
+        </div>
+
+        <!-- Job Details Card -->
+        <div class="card-panel">
+            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Job Details
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.88rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-clock"></i> Job Type</span>
+                    <strong style="color: var(--text-main);">Full-time</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-user-graduate"></i> Experience Level</span>
+                    <strong style="color: var(--text-main);">Entry Level (0-2 years)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-dollar-sign"></i> Salary Range</span>
+                    <strong style="color: var(--text-main);">$80,000 - $120,000</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> Location</span>
+                    <strong style="color: var(--text-main);">Remote</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-calendar"></i> Posted</span>
+                    <strong style="color: var(--text-main);">Sep 28, 2025</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar Jobs Card -->
+        <div class="card-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-gear" style="color: var(--primary);"></i> Similar Jobs
+                </h3>
+                <a href="{{ url_for('jobs.results') }}" style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;">View All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <strong style="font-size: 0.9rem; color: var(--text-main);">Data Scientist</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">Amazon • Remote</div>
+                        </div>
+                        <span class="badge-pill badge-match-high" style="font-size: 0.75rem;">87% Match</span>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <strong style="font-size: 0.9rem; color: var(--text-main);">ML Engineer</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">Meta • San Francisco, CA</div>
+                        </div>
+                        <span class="badge-pill badge-match-high" style="font-size: 0.75rem;">68% Match</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
