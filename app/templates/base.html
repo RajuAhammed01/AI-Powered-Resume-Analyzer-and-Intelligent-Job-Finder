@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ResumeAI — AI-Powered Resume & Job Finder{% endblock %}</title>
+    <title>{% block title %}JobSnap — AI-Powered Resume & Job Finder{% endblock %}</title>
     <!-- Google Fonts & FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -16,9 +16,9 @@
         <aside class="app-sidebar">
             <div class="sidebar-header">
                 <div class="brand-logo-icon">
-                    <i class="fa-solid fa-robot"></i>
+                    <i class="fa-solid fa-bolt"></i>
                 </div>
-                <a href="{{ url_for('main.dashboard') }}" class="brand-title">Resume<span>AI</span></a>
+                <a href="{{ url_for('main.dashboard') }}" class="brand-title">Job<span>Snap</span></a>
             </div>
             
             <nav class="sidebar-nav">
@@ -70,7 +70,7 @@
                         {% elif request.endpoint in ['jobs.results', 'jobs.job_detail'] %}Job Recommendations
                         {% elif request.endpoint == 'preferences.preferences' %}Job Preferences
                         {% elif request.endpoint == 'main.profile' %}Profile & Settings
-                        {% else %}ResumeAI Application{% endif %}
+                        {% else %}JobSnap Application{% endif %}
                     </span>
                 </div>
 
@@ -117,9 +117,9 @@
     <header class="landing-nav">
         <a href="{{ url_for('main.index') }}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
             <div class="brand-logo-icon">
-                <i class="fa-solid fa-robot"></i>
+                <i class="fa-solid fa-bolt"></i>
             </div>
-            <span class="brand-title">Resume<span>AI</span></span>
+            <span class="brand-title">Job<span>Snap</span></span>
         </a>
 
         <div class="landing-links">
@@ -159,10 +159,10 @@
     <footer class="app-footer">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             <div class="brand-logo-icon" style="width: 32px; height: 32px; font-size: 1rem;">
-                <i class="fa-solid fa-robot"></i>
+                <i class="fa-solid fa-bolt"></i>
             </div>
             <div>
-                <strong style="color: white;">ResumeAI</strong>
+                <strong style="color: white;">JobSnap</strong>
                 <div style="font-size: 0.78rem; color: #94a3b8;">Smarter resumes. Better opportunities.</div>
             </div>
         </div>
@@ -172,7 +172,7 @@
             <a href="#">License</a>
         </div>
         <div>
-            © 2026 ResumeAI. All rights reserved.
+            © 2026 JobSnap. All rights reserved.
         </div>
     </footer>
 {% endif %}
