@@ -20,10 +20,19 @@
                     {{ job.get('job_title', 'Job Opening') }}
                     <i class="fa-solid fa-circle-check" style="color: var(--primary); font-size: 1.25rem;"></i>
                 </h1>
-                <div style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                <div style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                     <strong style="color: var(--primary);">{{ job.get('employer_name') or job.get('company') or 'Hiring Company' }}</strong> • 
-                    <i class="fa-solid fa-location-dot"></i> {{ job.get('job_city') or job.get('location') or 'Remote' }} • 
-                    <i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }}
+                    <span><i class="fa-solid fa-location-dot"></i> {{ job.get('job_city') or job.get('location') or 'Remote' }}</span> • 
+                    <span><i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }}</span>
+                    {% if 'web' in (job.get('source_type', '')|lower) or 'web' in (job.get('source', '')|lower) %}
+                        <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.75rem;">
+                            <i class="fa-solid fa-satellite-dish"></i> {{ job.get('source', 'Live Web Scraped') }}
+                        </span>
+                    {% else %}
+                        <span class="badge-pill" style="background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.75rem;">
+                            <i class="fa-solid fa-database"></i> {{ job.get('source', 'Dataset Benchmark') }}
+                        </span>
+                    {% endif %}
                 </div>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">

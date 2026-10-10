@@ -76,10 +76,18 @@
             <option value="contract">Contract</option>
         </select>
 
+        <select id="filter-source" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);">
+            <option value="all">All Sources (Live Web + Dataset)</option>
+            <option value="web">Live Web Scraped (RemoteOK & Remotive)</option>
+            <option value="dataset">Dataset Benchmark (ResumeAtlas)</option>
+        </select>
+
         <select id="sort-select" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
             <option value="score">Sort by Match Score (High to Low)</option>
             <option value="title">Sort by Job Title</option>
         </select>
+    </div>
+
     <form method="GET" action="{{ url_for('jobs.results') }}" class="input-icon-group" style="width: 250px; margin: 0;">
         <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.85rem;"></i>
         <input type="text" id="search-input" name="q" oninput="filterJobs()" class="input-control" placeholder="Search by title, skill, role..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
@@ -95,6 +103,7 @@
              style="padding: 1.25rem;"
              data-location="{{ (job.get('job_city') or job.get('location') or 'remote')|lower }}"
              data-type="{{ (job.get('job_employment_type') or 'full-time')|lower }}"
+             data-source="{{ (job.get('source_type') or ('web' if 'web' in job.get('source', '').lower() else 'dataset'))|lower }}"
              data-score="{{ job.get('combined_score', 0) }}"
              data-title="{{ job.get('job_title', '')|lower }}"
              data-company="{{ (job.get('employer_name') or job.get('company') or '')|lower }}"
@@ -110,10 +119,19 @@
                                 {{ job.get('job_title', 'Untitled Role') }}
                             </a>
                         </h3>
-                        <div style="font-size: 0.82rem; color: var(--text-muted);">
+                        <div style="font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                             <strong>{{ job.get('employer_name') or job.get('company') or 'Company' }}</strong> • 
-                            <i class="fa-solid fa-location-dot"></i> {{ job.get('job_city') or job.get('location') or 'Remote' }} • 
-                            <i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }}
+                            <span><i class="fa-solid fa-location-dot"></i> {{ job.get('job_city') or job.get('location') or 'Remote' }}</span> • 
+                            <span><i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }}</span>
+                            {% if 'web' in (job.get('source_type', '')|lower) or 'web' in (job.get('source', '')|lower) %}
+                                <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.72rem; padding: 0.15rem 0.5rem;">
+                                    <i class="fa-solid fa-satellite-dish"></i> {{ job.get('source', 'Live Web') }}
+                                </span>
+                            {% else %}
+                                <span class="badge-pill" style="background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.72rem; padding: 0.15rem 0.5rem;">
+                                    <i class="fa-solid fa-database"></i> {{ job.get('source', 'Dataset') }}
+                                </span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -258,6 +276,7 @@
 function filterJobs() {
     const locFilter = document.getElementById('filter-location').value.toLowerCase();
     const typeFilter = document.getElementById('filter-type').value.toLowerCase();
+    const sourceFilter = document.getElementById('filter-source') ? document.getElementById('filter-source').value.toLowerCase() : 'all';
     const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
     const sortVal = document.getElementById('sort-select').value;
     
@@ -268,15 +287,17 @@ function filterJobs() {
     cards.forEach(card => {
         const loc = card.dataset.location || '';
         const type = card.dataset.type || '';
+        const src = card.dataset.source || '';
         const title = card.dataset.title || '';
         const company = card.dataset.company || '';
         const skills = card.dataset.skills || '';
 
         let matchLoc = (locFilter === 'all') || (locFilter === 'remote' && loc.includes('remote')) || (locFilter === 'onsite' && !loc.includes('remote'));
         let matchType = (typeFilter === 'all') || type.includes(typeFilter);
+        let matchSource = (sourceFilter === 'all') || (sourceFilter === 'web' && src.includes('web')) || (sourceFilter === 'dataset' && src.includes('dataset'));
         let matchSearch = !searchVal || title.includes(searchVal) || company.includes(searchVal) || skills.includes(searchVal);
 
-        if (matchLoc && matchType && matchSearch) {
+        if (matchLoc && matchType && matchSource && matchSearch) {
             card.style.display = 'block';
             visibleCount++;
         } else {

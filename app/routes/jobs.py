@@ -35,10 +35,11 @@ def results():
     resume_text = resume.extracted_text or ""
 
     search_query = request.args.get("q", "").strip()
-    target_role = search_query if search_query else (pref.target_role or "Machine Learning Engineer")
+    source_query = request.args.get("source", "all").strip().lower()
+    target_role = search_query if search_query else (pref.target_role or "Software Engineer")
     location = pref.location or "Remote"
 
-    jobs = fetch_jobs(target_role, location)
+    jobs = fetch_jobs(target_role, location, source=source_query)
     for index, job in enumerate(jobs):
         description = job.get("job_description", "")
         job_skills = extract_skills(description)
@@ -52,16 +53,17 @@ def results():
         job["cache_id"] = index
 
     jobs.sort(key=lambda j: j.get("combined_score", 0), reverse=True)
-    USER_JOBS_CACHE[current_user.id] = jobs[:20]
+    USER_JOBS_CACHE[current_user.id] = jobs[:25]
 
     saved_jobs_count = SavedJob.query.filter_by(user_id=current_user.id).count()
 
     return render_template(
         "results.html",
-        jobs=jobs[:20],
+        jobs=jobs[:25],
         resume=resume,
         saved_jobs_count=saved_jobs_count,
         top_match_score=jobs[0]["combined_score"] if jobs else 92,
+        selected_source=source_query,
     )
 
 
