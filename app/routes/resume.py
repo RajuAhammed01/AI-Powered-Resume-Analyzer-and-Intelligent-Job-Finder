@@ -7,8 +7,9 @@ from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
 from app.extensions import db
-from app.models import Resume
-from app.services.resume_parser import extract_structure, extract_text, validate_upload
+from app.models import JobPreference, Resume
+from app.services.job_api import fetch_jobs
+from app.services.resume_parser import calculate_ats_score, extract_structure, extract_text, validate_upload
 from app.services.skill_extractor import extract_skills
 
 resume_bp = Blueprint("resume", __name__)
@@ -41,6 +42,7 @@ def upload():
             text = extract_text(filepath)
             structure = extract_structure(text)
             skills = extract_skills(text)
+            ats_score = calculate_ats_score(text, structure, skills)
 
             resume = Resume(
                 user_id=current_user.id,
@@ -49,10 +51,10 @@ def upload():
                 extracted_text=text or "Extracted resume content.",
                 extracted_skills=json.dumps(skills),
                 contact_info=structure.get("contact_info", current_user.email),
-                education=structure.get("education", "Education extracted from resume."),
-                experience=structure.get("experience", "Work experience extracted from resume."),
-                completeness_score=structure.get("completeness_score", 80),
-                ats_score=min(95, max(60, structure.get("completeness_score", 70) + 10)),
+                education=structure.get("education", "Education not detected."),
+                experience=structure.get("experience", "Experience not detected."),
+                completeness_score=structure.get("completeness_score", 50),
+                ats_score=ats_score,
             )
             db.session.add(resume)
             db.session.commit()
@@ -75,12 +77,36 @@ def resume_analysis(id):
         flash("Resume not found or access denied.")
         return redirect(url_for("main.dashboard"))
 
-    skill_gap_recommendations = [
-        {"skill": "Machine Learning", "priority": "High", "demand": 90},
-        {"skill": "Deep Learning", "priority": "High", "demand": 85},
-        {"skill": "NLP", "priority": "Medium", "demand": 75},
-        {"skill": "Cloud Computing (AWS/GCP)", "priority": "Medium", "demand": 80},
-        {"skill": "Docker & Kubernetes", "priority": "High", "demand": 88},
-    ]
+    user_skills = set(resume.skills or [])
+    pref = JobPreference.query.filter_by(user_id=current_user.id).first()
+    target_role = (pref.target_role if pref else None) or "Software Engineer"
+    location = (pref.location if pref else None) or "Remote"
+
+    jobs = fetch_jobs(target_role, location)
+    missing_freq = {}
+    for job in jobs:
+        desc = job.get("job_description", "")
+        j_skills = extract_skills(desc)
+        for s in j_skills:
+            if s not in user_skills:
+                missing_freq[s] = missing_freq.get(s, 0) + 1
+
+    if not missing_freq:
+        general_skills = ["Git", "SQL", "Docker", "Python", "REST APIs", "AWS", "CI/CD", "JavaScript"]
+        for s in general_skills:
+            if s not in user_skills:
+                missing_freq[s] = 1
+
+    sorted_missing = sorted(missing_freq.items(), key=lambda x: x[1], reverse=True)[:5]
+    demand_weights = [92, 85, 80, 75, 70]
+    skill_gap_recommendations = []
+    for idx, (skill_name, _) in enumerate(sorted_missing):
+        demand = demand_weights[idx] if idx < len(demand_weights) else 65
+        priority = "High" if demand >= 80 else "Medium"
+        skill_gap_recommendations.append({
+            "skill": skill_name,
+            "priority": priority,
+            "demand": demand
+        })
 
     return render_template("resume_analysis.html", resume=resume, skill_gap_recommendations=skill_gap_recommendations)

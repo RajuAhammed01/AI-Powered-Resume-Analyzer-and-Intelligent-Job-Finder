@@ -2,7 +2,12 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.extensions import db
-from app.models import Resume, SavedJob, User
+from app.models import JobPreference, Resume, SavedJob, User
+from app.routes.jobs import USER_JOBS_CACHE
+from app.services.job_api import fetch_jobs
+from app.services.matcher import basic_match_score, tfidf_cosine_score
+from app.services.skill_extractor import extract_skills
+from app.services.skill_gap import get_skill_gap
 
 main_bp = Blueprint("main", __name__)
 
@@ -18,7 +23,60 @@ def dashboard():
     resume = Resume.query.filter_by(user_id=current_user.id).order_by(Resume.upload_date.desc()).first()
     saved_jobs = SavedJob.query.filter_by(user_id=current_user.id).order_by(SavedJob.saved_date.desc()).all()
     extracted_skills_count = len(resume.skills) if resume and resume.skills else 0
-    top_match_score = 92 if resume else 0
+
+    recommended_jobs = []
+    top_match_score = None
+    skill_gap_summary = []
+
+    if resume:
+        pref = JobPreference.query.filter_by(user_id=current_user.id).first()
+        target_role = (pref.target_role if pref else None) or "Software Engineer"
+        location = (pref.location if pref else None) or "Remote"
+
+        resume_skills = resume.skills or []
+        resume_text = resume.extracted_text or ""
+
+        raw_jobs = fetch_jobs(target_role, location)
+        processed_jobs = []
+        for index, job_item in enumerate(raw_jobs):
+            job = dict(job_item)
+            description = job.get("job_description", "")
+            job_skills = extract_skills(description)
+            job["job_skills"] = job_skills
+            job["match_score"] = basic_match_score(resume_skills, job_skills)
+            job["cosine_score"] = tfidf_cosine_score(resume_text, description)
+            job["combined_score"] = int((job["match_score"] + job["cosine_score"]) / 2)
+            matched, missing = get_skill_gap(resume_skills, job_skills)
+            job["matched_skills"] = matched
+            job["missing_skills"] = missing
+            job["cache_id"] = index
+            processed_jobs.append(job)
+
+        processed_jobs.sort(key=lambda j: j.get("combined_score", 0), reverse=True)
+        USER_JOBS_CACHE[current_user.id] = processed_jobs[:20]
+        recommended_jobs = processed_jobs[:3]
+
+        if recommended_jobs:
+            top_match_score = recommended_jobs[0]["combined_score"]
+
+        # Aggregate missing skills from recommended jobs
+        missing_skills_map = {}
+        for j in processed_jobs[:5]:
+            for s in j.get("missing_skills", []):
+                missing_skills_map[s] = missing_skills_map.get(s, 0) + 1
+
+        top_missing_sorted = sorted(missing_skills_map.items(), key=lambda x: x[1], reverse=True)[:5]
+        demand_weights = [88, 80, 75, 70, 65]
+        for idx, (skill_name, _) in enumerate(top_missing_sorted):
+            weight = demand_weights[idx] if idx < len(demand_weights) else 60
+            level = "High demand" if weight >= 80 else "Medium demand"
+            color = "#ef4444" if weight >= 80 else "#f59e0b"
+            skill_gap_summary.append({
+                "skill": skill_name,
+                "demand": weight,
+                "level": level,
+                "color": color
+            })
 
     return render_template(
         "dashboard.html",
@@ -26,6 +84,8 @@ def dashboard():
         saved_jobs=saved_jobs,
         extracted_skills_count=extracted_skills_count,
         top_match_score=top_match_score,
+        recommended_jobs=recommended_jobs,
+        skill_gap_summary=skill_gap_summary,
     )
 
 

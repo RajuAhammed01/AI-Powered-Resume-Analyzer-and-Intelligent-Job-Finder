@@ -19,6 +19,10 @@ USER_JOBS_CACHE = {}
 @login_required
 def results():
     resume = Resume.query.filter_by(user_id=current_user.id).order_by(Resume.upload_date.desc()).first()
+    if not resume:
+        flash("Please upload your resume first so our AI can analyze your skills and find matching jobs.")
+        return redirect(url_for("resume.upload"))
+
     pref = JobPreference.query.filter_by(user_id=current_user.id).first()
 
     # Create default preference if none exists
@@ -27,8 +31,8 @@ def results():
         db.session.add(pref)
         db.session.commit()
 
-    resume_skills = json.loads(resume.extracted_skills or "[]") if resume else ["Python", "SQL", "Machine Learning"]
-    resume_text = resume.extracted_text if resume else "Python Machine Learning Data Science"
+    resume_skills = json.loads(resume.extracted_skills or "[]") if resume.extracted_skills else []
+    resume_text = resume.extracted_text or ""
 
     target_role = pref.target_role or "Machine Learning Engineer"
     location = pref.location or "Remote"

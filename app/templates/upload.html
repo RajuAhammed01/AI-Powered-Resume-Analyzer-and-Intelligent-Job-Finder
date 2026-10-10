@@ -80,29 +80,26 @@
                         {% for r in current_user.resumes %}
                         <tr>
                             <td style="font-weight: 600; color: var(--text-main);">
-                                <i class="fa-regular fa-file-pdf" style="color: var(--danger); margin-right: 0.4rem;"></i>
-                                {{ r.filename if r.filename else 'Resume_Parsed.pdf' }}
+                                <i class="fa-regular fa-file-lines" style="color: var(--primary); margin-right: 0.4rem;"></i>
+                                {{ r.filename if r.filename else 'My_Resume.pdf' }}
                             </td>
                             <td style="color: var(--text-muted);">
                                 {{ r.upload_date.strftime('%b %d, %Y') if r.upload_date else 'Recent' }}
                             </td>
                             <td>
-                                <span class="badge-pill badge-match-high">Analyzed</span>
+                                <span class="badge-pill badge-match-high">Score: {{ r.completeness_score }}%</span>
                             </td>
                             <td>
-                                <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">View Result</a>
+                                <a href="{{ url_for('resume.resume_analysis', id=r.id) }}" class="btn btn-outline btn-sm">View Analysis</a>
                             </td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td style="font-weight: 600; color: var(--text-main);">
-                                <i class="fa-regular fa-file-pdf" style="color: var(--danger); margin-right: 0.4rem;"></i>
-                                Sample_Resume.pdf
+                            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                <i class="fa-solid fa-file-circle-xmark" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem; opacity: 0.6;"></i>
+                                No resumes uploaded yet. Upload a PDF or DOCX file using the box above.
                             </td>
-                            <td style="color: var(--text-muted);">Today</td>
-                            <td><span class="badge-pill badge-match-high">Analyzed</span></td>
-                            <td><a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">View Result</a></td>
                         </tr>
                     {% endif %}
                 </tbody>

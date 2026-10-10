@@ -84,13 +84,51 @@ def _matches_section(line: str, keywords: list) -> bool:
     return any(kw in lower for kw in keywords) and len(lower) < 60
 
 
+def calculate_ats_score(text: str, structure: dict, skills: list) -> int:
+    if not text or not text.strip():
+        return 0
+    score = 0
+    # 1. Contact Info check (20 pts)
+    contact = structure.get("contact_info", "")
+    if "@" in contact:
+        score += 10
+    if re.search(r"\d{3}", contact):
+        score += 10
+
+    # 2. Key sections present (30 pts)
+    if structure.get("education", "").strip():
+        score += 15
+    if structure.get("experience", "").strip():
+        score += 15
+
+    # 3. Skills density (25 pts)
+    num_skills = len(skills) if skills else 0
+    if num_skills >= 6:
+        score += 25
+    elif num_skills >= 3:
+        score += 18
+    elif num_skills >= 1:
+        score += 10
+
+    # 4. Content length and formatting (25 pts)
+    words = len(text.split())
+    if 150 <= words <= 1200:
+        score += 25
+    elif words > 50:
+        score += 15
+    else:
+        score += 5
+
+    return min(max(score, 15), 98)
+
+
 def extract_structure(text: str) -> dict:
     if not text:
         return {
             "contact_info": "",
             "education": "",
             "experience": "",
-            "completeness_score": 50,
+            "completeness_score": 0,
         }
 
     email_pattern = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
@@ -131,15 +169,17 @@ def extract_structure(text: str) -> dict:
 
     score = 0
     if emails:
-        score += 20
+        score += 25
     if phones:
-        score += 20
-    score += min(30, len(education) * 6)
-    score += min(30, len(experience) * 3)
+        score += 15
+    if education:
+        score += min(30, max(15, len(education) * 5))
+    if experience:
+        score += min(30, max(15, len(experience) * 4))
 
     return {
         "contact_info": ", ".join(contact),
         "education": "\n".join(education[:5]),
         "experience": "\n".join(experience[:10]),
-        "completeness_score": min(max(score, 60), 100),
+        "completeness_score": min(max(score, 0), 100),
     }
