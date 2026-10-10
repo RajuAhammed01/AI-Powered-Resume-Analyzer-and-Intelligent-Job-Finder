@@ -79,6 +79,14 @@ def dashboard():
                 "color": color
             })
 
+    pipeline_stats = {
+        "saved": len([j for j in saved_jobs if (j.status or 'Saved').lower() == 'saved']),
+        "applied": len([j for j in saved_jobs if (j.status or '').lower() == 'applied']),
+        "interview": len([j for j in saved_jobs if (j.status or '').lower() == 'interview']),
+        "offer": len([j for j in saved_jobs if (j.status or '').lower() == 'offer']),
+        "total": len(saved_jobs)
+    }
+
     return render_template(
         "dashboard.html",
         resume=resume,
@@ -87,6 +95,7 @@ def dashboard():
         top_match_score=top_match_score,
         recommended_jobs=recommended_jobs,
         skill_gap_summary=skill_gap_summary,
+        pipeline_stats=pipeline_stats,
     )
 
 

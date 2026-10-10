@@ -168,3 +168,19 @@ def remove_saved_job(id):
         db.session.commit()
         flash("Job removed from saved list.")
     return redirect(url_for("jobs.saved_jobs"))
+
+
+@jobs_bp.route("/update-job-status/<int:id>", methods=["POST"])
+@login_required
+def update_job_status(id):
+    from datetime import datetime
+    job = db.session.get(SavedJob, id)
+    if job and job.user_id == current_user.id:
+        new_status = request.form.get("status", "Saved").strip()
+        job.status = new_status
+        if new_status == "Applied" and not job.applied_date:
+            job.applied_date = datetime.utcnow()
+        db.session.commit()
+        flash(f"Updated status for '{job.job_title}' to '{new_status}'.")
+    return redirect(request.referrer or url_for("jobs.saved_jobs"))
+

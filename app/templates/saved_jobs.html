@@ -2,36 +2,71 @@
 
 {% block content %}
 <!-- Page Header -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div>
         <div class="hero-tag" style="background: #ffedd5; color: #ea580c;">
-            <i class="fa-solid fa-bookmark"></i> Your Bookmarks
+            <i class="fa-solid fa-timeline"></i> Application Tracker
         </div>
         <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
-            Saved Jobs
+            Saved Jobs & Applications
         </h1>
         <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
-            Keep track of your favorite positions and apply whenever you're ready.
+            Track your pipeline from bookmarks through interviews to job offers.
         </p>
     </div>
 
-    <a href="{{ url_for('jobs.results') }}" class="btn btn-primary">
-        <i class="fa-solid fa-magnifying-glass"></i> Explore More Jobs
-    </a>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('jobs.results') }}" class="btn btn-primary">
+            <i class="fa-solid fa-magnifying-glass"></i> Explore More Jobs
+        </a>
+    </div>
+</div>
+
+<!-- Tabs & Search Filter Bar -->
+<div class="card-panel" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <!-- Pipeline Tabs -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="tabGroup">
+        <button type="button" class="btn btn-sm btn-primary active-tab-btn" onclick="filterSavedJobs('all', this)" id="tab-all">
+            All <span class="badge-pill" style="background: rgba(255,255,255,0.25); color: inherit; padding: 0.1rem 0.45rem; font-size: 0.75rem; margin-left: 0.35rem;">{{ saved_jobs|length }}</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="filterSavedJobs('saved', this)" id="tab-saved">
+            <i class="fa-regular fa-bookmark"></i> Bookmarked
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="filterSavedJobs('applied', this)" id="tab-applied">
+            <i class="fa-solid fa-paper-plane"></i> Applied
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="filterSavedJobs('interview', this)" id="tab-interview">
+            <i class="fa-solid fa-comments"></i> Interview
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="filterSavedJobs('offer', this)" id="tab-offer">
+            <i class="fa-solid fa-trophy"></i> Offers
+        </button>
+    </div>
+
+    <!-- Live Search Filter -->
+    <div style="position: relative; min-width: 240px;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 0.85rem;"></i>
+        <input type="text" id="savedJobSearch" onkeyup="searchSavedJobs()" placeholder="Search company or title..." class="form-control" style="padding-left: 2.2rem; font-size: 0.88rem; height: 38px;">
+    </div>
 </div>
 
 <!-- Saved Jobs Grid -->
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
+<div id="savedJobsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
     {% for job in saved_jobs %}
-    <div class="card-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+    {% set job_status_lower = (job.status or 'Saved')|lower %}
+    <div class="card-panel job-track-card" 
+         data-status="{{ job_status_lower }}"
+         data-title="{{ (job.job_title or '')|lower }}"
+         data-company="{{ (job.company or '')|lower }}"
+         style="display: flex; flex-direction: column; justify-content: space-between; transition: var(--transition);">
         <div>
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                <div style="display: flex; gap: 0.75rem; align-items: center;">
-                    <div class="mock-company-icon" style="background: #2563eb; width: 44px; height: 44px; font-size: 1.1rem;">
+                <div style="display: flex; gap: 0.75rem; align-items: center; flex: 1;">
+                    <div class="mock-company-icon" style="background: {% if loop.index0 % 3 == 0 %}#2563eb{% elif loop.index0 % 3 == 1 %}#7c3aed{% else %}#059669{% endif %}; width: 44px; height: 44px; font-size: 1.1rem; flex-shrink: 0;">
                         {{ job.company[0] if job.company else 'C' }}
                     </div>
-                    <div>
-                        <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">
+                    <div style="flex: 1;">
+                        <h3 class="job-title-clamped" style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">
                             {{ job.job_title }}
                         </h3>
                         <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">
@@ -40,13 +75,26 @@
                     </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-                    <span class="badge-pill badge-match-high">
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; margin-left: 0.5rem;">
+                    <span class="badge-pill {% if job.match_score >= 70 %}badge-match-high{% elif job.match_score >= 45 %}badge-match-med{% else %}badge-match-low{% endif %}">
                         {{ job.match_score }}% Match
                     </span>
-                    {% if job.status == 'Applied' %}
+                    
+                    {% if job_status_lower == 'applied' %}
                         <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.72rem;">
                             <i class="fa-solid fa-circle-check"></i> Applied
+                        </span>
+                    {% elif job_status_lower == 'interview' %}
+                        <span class="badge-pill" style="background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; font-size: 0.72rem;">
+                            <i class="fa-solid fa-comments"></i> Interview
+                        </span>
+                    {% elif job_status_lower == 'offer' %}
+                        <span class="badge-pill" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 0.72rem;">
+                            <i class="fa-solid fa-trophy"></i> Offer
+                        </span>
+                    {% elif job_status_lower == 'rejected' %}
+                        <span class="badge-pill" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.72rem;">
+                            <i class="fa-solid fa-xmark"></i> Archived
                         </span>
                     {% else %}
                         <span class="badge-pill" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 0.72rem;">
@@ -57,29 +105,48 @@
             </div>
 
             <div style="display: flex; gap: 1rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-                <span><i class="fa-solid fa-location-dot"></i> {{ job.location }}</span>
-                <span><i class="fa-solid fa-clock"></i> {{ job.employment_type }}</span>
+                <span><i class="fa-solid fa-location-dot"></i> {{ job.location or 'Remote' }}</span>
+                <span><i class="fa-solid fa-clock"></i> {{ job.employment_type or 'Full-time' }}</span>
             </div>
 
-            <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 1rem;">
                 {% if job.status == 'Applied' and job.applied_date %}
                     <span style="color: #047857; font-weight: 600;"><i class="fa-solid fa-paper-plane"></i> Applied on {{ job.applied_date.strftime('%b %d, %Y') }}</span>
                 {% else %}
-                    Saved on {{ job.saved_date.strftime('%b %d, %Y') if job.saved_date else 'Recently' }}
+                    <i class="fa-regular fa-calendar"></i> Saved on {{ job.saved_date.strftime('%b %d, %Y') if job.saved_date else 'Recently' }}
                 {% endif %}
+            </div>
+
+            <!-- Stage Selector Dropdown -->
+            <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem 0.75rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin: 0;">Stage:</label>
+                <form method="POST" action="{{ url_for('jobs.update_job_status', id=job.id) }}" style="margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" onchange="this.form.submit()" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: 600; cursor: pointer;">
+                        <option value="Saved" {% if job_status_lower == 'saved' %}selected{% endif %}>🔖 Bookmarked</option>
+                        <option value="Applied" {% if job_status_lower == 'applied' %}selected{% endif %}>🚀 Applied</option>
+                        <option value="Interview" {% if job_status_lower == 'interview' %}selected{% endif %}>💼 Interview</option>
+                        <option value="Offer" {% if job_status_lower == 'offer' %}selected{% endif %}>🎉 Offer Received</option>
+                        <option value="Rejected" {% if job_status_lower == 'rejected' %}selected{% endif %}>❌ Archived</option>
+                    </select>
+                </form>
             </div>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-            <form method="POST" action="{{ url_for('jobs.remove_saved_job', id=job.id) }}">
+            <form method="POST" action="{{ url_for('jobs.remove_saved_job', id=job.id) }}" style="margin: 0;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger-border);">
+                <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger-border); padding: 0.35rem 0.7rem;">
                     <i class="fa-solid fa-trash"></i> Remove
                 </button>
             </form>
 
             <a href="{{ job.apply_link if job.apply_link else '#' }}" target="_blank" class="btn btn-primary btn-sm btn-pill">
-                Apply Now <i class="fa-solid fa-arrow-right"></i>
+                {% if job_status_lower == 'applied' %}
+                    View Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                {% else %}
+                    Apply Now <i class="fa-solid fa-arrow-right"></i>
+                {% endif %}
             </a>
         </div>
     </div>
@@ -87,9 +154,76 @@
     <div class="card-panel" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
         <i class="fa-solid fa-bookmark" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
         <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700;">No saved jobs yet</h2>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Click the bookmark icon on any job card to save it for later.</p>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Click the bookmark icon or apply to any job recommendation to track it in your pipeline.</p>
         <a href="{{ url_for('jobs.results') }}" class="btn btn-primary">Find Recommended Jobs</a>
     </div>
     {% endfor %}
 </div>
+
+<div id="noFilteredResults" style="display: none; text-align: center; padding: 3rem 1.5rem; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md); margin-top: 1rem;">
+    <i class="fa-solid fa-filter" style="font-size: 2rem; color: var(--text-light); margin-bottom: 0.5rem; display: block;"></i>
+    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">No jobs match this filter</h3>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">Try selecting a different stage tab or clearing the search query.</p>
+    <button type="button" class="btn btn-outline btn-sm" onclick="filterSavedJobs('all', document.getElementById('tab-all'))">View All Jobs</button>
+</div>
+
+<script>
+var currentTab = 'all';
+
+function filterSavedJobs(status, btnElement) {
+    currentTab = status;
+    var tabs = document.querySelectorAll('#tabGroup button');
+    tabs.forEach(function(b) {
+        b.className = 'btn btn-sm btn-outline';
+    });
+    if (btnElement) {
+        btnElement.className = 'btn btn-sm btn-primary active-tab-btn';
+    }
+
+    applyFilters();
+}
+
+function searchSavedJobs() {
+    applyFilters();
+}
+
+function applyFilters() {
+    var query = document.getElementById('savedJobSearch').value.toLowerCase().trim();
+    var cards = document.querySelectorAll('.job-track-card');
+    var visibleCount = 0;
+
+    cards.forEach(function(card) {
+        var cardStatus = card.getAttribute('data-status') || 'saved';
+        var cardTitle = card.getAttribute('data-title') || '';
+        var cardCompany = card.getAttribute('data-company') || '';
+
+        var matchesTab = (currentTab === 'all') || (cardStatus === currentTab);
+        var matchesSearch = !query || cardTitle.includes(query) || cardCompany.includes(query);
+
+        if (matchesTab && matchesSearch) {
+            card.style.display = 'flex';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    var emptyMsg = document.getElementById('noFilteredResults');
+    if (emptyMsg) {
+        emptyMsg.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+    }
+}
+
+// Auto-activate tab from URL param if present (e.g. ?tab=applied)
+document.addEventListener('DOMContentLoaded', function() {
+    var params = new URLSearchParams(window.location.search);
+    var tabParam = params.get('tab');
+    if (tabParam) {
+        var targetBtn = document.getElementById('tab-' + tabParam.toLowerCase());
+        if (targetBtn) {
+            filterSavedJobs(tabParam.toLowerCase(), targetBtn);
+        }
+    }
+});
+</script>
 {% endblock %}

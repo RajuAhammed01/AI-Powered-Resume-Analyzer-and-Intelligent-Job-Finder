@@ -7,6 +7,14 @@
     <!-- Google Fonts & FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        (function() {
+            var savedTheme = localStorage.getItem('jobsnap_theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
 <body>
 
@@ -61,13 +69,20 @@
             </div>
         </aside>
 
+        <!-- Mobile Sidebar Overlay Backdrop -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
+
         <div class="main-wrapper">
             <header class="app-topbar">
-                <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <button type="button" class="btn btn-outline btn-sm mobile-hamburger-btn" onclick="toggleMobileSidebar()" title="Toggle Navigation Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
                     <span style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">
                         {% if request.endpoint == 'main.dashboard' %}Dashboard Overview
                         {% elif request.endpoint in ['resume.upload', 'resume.resume_analysis'] %}Resume Analysis & Upload
                         {% elif request.endpoint in ['jobs.results', 'jobs.job_detail'] %}Job Recommendations
+                        {% elif request.endpoint == 'jobs.saved_jobs' %}Saved Jobs & Applications
                         {% elif request.endpoint == 'preferences.preferences' %}Job Preferences
                         {% elif request.endpoint == 'main.profile' %}Profile & Settings
                         {% else %}JobSnap Application{% endif %}
@@ -75,6 +90,9 @@
                 </div>
 
                 <div class="topbar-user">
+                    <button type="button" class="btn btn-outline btn-sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;">
+                        <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    </button>
                     <a href="{{ url_for('resume.upload') }}" class="btn btn-primary btn-sm">
                         <i class="fa-solid fa-plus"></i> Upload Resume
                     </a>
@@ -176,6 +194,42 @@
         </div>
     </footer>
 {% endif %}
+
+<script>
+    function toggleTheme() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('jobsnap_theme', 'light');
+            var icon = document.getElementById('themeIcon');
+            if (icon) icon.className = 'fa-solid fa-moon';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('jobsnap_theme', 'dark');
+            var icon = document.getElementById('themeIcon');
+            if (icon) icon.className = 'fa-solid fa-sun';
+        }
+    }
+
+    function toggleMobileSidebar() {
+        var sidebar = document.querySelector('.app-sidebar');
+        var overlay = document.getElementById('sidebarOverlay');
+        if (sidebar) {
+            sidebar.classList.toggle('mobile-open');
+        }
+        if (overlay) {
+            overlay.classList.toggle('active');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var icon = document.getElementById('themeIcon');
+        if (icon && isDark) {
+            icon.className = 'fa-solid fa-sun';
+        }
+    });
+</script>
 
 </body>
 </html>

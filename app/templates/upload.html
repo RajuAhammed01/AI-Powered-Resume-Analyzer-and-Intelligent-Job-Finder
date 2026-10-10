@@ -19,7 +19,7 @@
     <!-- Left Main Column: Drag & Drop Box + Upload Form + Recent Table -->
     <div>
         <div class="card-panel" style="margin-bottom: 2rem;">
-            <form method="POST" enctype="multipart/form-data" id="upload-form">
+            <form method="POST" enctype="multipart/form-data" id="upload-form" onsubmit="return showAiParsingOverlay()">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="upload-dropzone" id="drop-zone" onclick="document.getElementById('resume').click()">
@@ -53,7 +53,7 @@
                     <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 1.2rem;"></i>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 0.85rem; font-size: 1rem; border-radius: var(--radius-md);">
+                <button type="submit" id="analyzeBtn" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 0.85rem; font-size: 1rem; border-radius: var(--radius-md);">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Resume Now
                 </button>
             </form>
@@ -167,6 +167,37 @@
     </div>
 </div>
 
+<!-- AI Parsing Progress Modal Overlay -->
+<div id="aiParsingOverlay" class="ai-modal-overlay">
+    <div class="ai-modal-box">
+        <div class="ai-pulse-ring">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main);">
+            Analyzing Your Resume
+        </h3>
+        <p id="aiParsingStatus" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; min-height: 1.4rem;">
+            Reading PDF document stream...
+        </p>
+
+        <!-- Progress Steps -->
+        <div style="display: flex; flex-direction: column; gap: 0.65rem; text-align: left; background: var(--bg-subtle); padding: 1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.85rem;">
+            <div id="step-1" style="display: flex; align-items: center; gap: 0.6rem; color: var(--primary); font-weight: 600;">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Extracting text & structure
+            </div>
+            <div id="step-2" style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-light);">
+                <i class="fa-regular fa-circle"></i> Identifying skills with spaCy NLP
+            </div>
+            <div id="step-3" style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-light);">
+                <i class="fa-regular fa-circle"></i> Evaluating ATS compliance & contact info
+            </div>
+            <div id="step-4" style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-light);">
+                <i class="fa-regular fa-circle"></i> Indexing personalized job matches
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function handleFileSelect(input) {
     if (input.files && input.files[0]) {
@@ -175,6 +206,46 @@ function handleFileSelect(input) {
         document.getElementById('file-size-display').innerText = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
         document.getElementById('file-preview').style.display = 'flex';
     }
+}
+
+function showAiParsingOverlay() {
+    var fileInput = document.getElementById('resume');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        return true;
+    }
+
+    document.getElementById('aiParsingOverlay').style.display = 'flex';
+    var statusText = document.getElementById('aiParsingStatus');
+
+    var stepTimes = [
+        { id: 'step-1', text: 'Tokenizing text stream and headers...', delay: 700 },
+        { id: 'step-2', text: 'Extracting skills and tech stack...', delay: 1500 },
+        { id: 'step-3', text: 'Scoring ATS compatibility & parsing links...', delay: 2300 },
+        { id: 'step-4', text: 'Finalizing insights and matching benchmark jobs...', delay: 3100 }
+    ];
+
+    stepTimes.forEach(function(item, idx) {
+        setTimeout(function() {
+            if (idx > 0) {
+                var prevStep = document.getElementById(stepTimes[idx - 1].id);
+                if (prevStep) {
+                    prevStep.style.color = 'var(--success)';
+                    prevStep.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + prevStep.innerText;
+                }
+            }
+            var curStep = document.getElementById(item.id);
+            if (curStep) {
+                curStep.style.color = 'var(--primary)';
+                curStep.style.fontWeight = '600';
+                curStep.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' + curStep.innerText;
+            }
+            if (statusText) {
+                statusText.innerText = item.text;
+            }
+        }, item.delay);
+    });
+
+    return true;
 }
 </script>
 {% endblock %}

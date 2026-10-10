@@ -88,10 +88,15 @@
         </select>
     </div>
 
-    <form method="GET" action="{{ url_for('jobs.results') }}" class="input-icon-group" style="width: 250px; margin: 0;">
-        <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.85rem;"></i>
-        <input type="text" id="search-input" name="q" oninput="filterJobs()" class="input-control" placeholder="Search by title, skill, role..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
-    </form>
+    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <span class="badge-pill" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 0.78rem;">
+            <i class="fa-solid fa-satellite-dish" style="color: #2563eb;"></i> Live Web & Dataset Engine Active
+        </span>
+        <form method="GET" action="{{ url_for('jobs.results') }}" class="input-icon-group" style="width: 250px; margin: 0;">
+            <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.85rem;"></i>
+            <input type="text" id="search-input" name="q" oninput="filterJobs()" class="input-control" placeholder="Search by title, skill, role..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
+        </form>
+    </div>
 </div>
 
 <!-- Main 2-Column Split -->
@@ -99,7 +104,7 @@
     <!-- Left Job Recommendations Cards List -->
     <div id="jobs-list-container" style="display: flex; flex-direction: column; gap: 1rem;">
         {% for job in jobs %}
-        <div class="card-panel job-card" 
+        <div class="card-panel job-card job-card-unified" 
              style="padding: 1.25rem;"
              data-location="{{ (job.get('job_city') or job.get('location') or 'remote')|lower }}"
              data-type="{{ (job.get('job_employment_type') or 'full-time')|lower }}"
@@ -109,12 +114,12 @@
              data-company="{{ (job.get('employer_name') or job.get('company') or '')|lower }}"
              data-skills="{{ (job.get('job_skills', []) + job.get('matched_skills', []))|join(' ')|lower }}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                <div style="display: flex; gap: 0.85rem; align-items: flex-start;">
-                    <div class="mock-company-icon" style="background: {% if loop.index0 % 3 == 0 %}#2563eb{% elif loop.index0 % 3 == 1 %}#7c3aed{% else %}#059669{% endif %}; font-size: 1.1rem; width: 44px; height: 44px;">
+                <div style="display: flex; gap: 0.85rem; align-items: flex-start; flex: 1;">
+                    <div class="mock-company-icon" style="background: {% if loop.index0 % 3 == 0 %}#2563eb{% elif loop.index0 % 3 == 1 %}#7c3aed{% else %}#059669{% endif %}; font-size: 1.1rem; width: 44px; height: 44px; flex-shrink: 0;">
                         {{ (job.get('employer_name') or job.get('company') or 'J')[0]|upper }}
                     </div>
-                    <div>
-                        <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem;">
+                    <div style="flex: 1;">
+                        <h3 class="job-title-clamped" style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem;">
                             <a href="{{ url_for('jobs.job_detail', index=job.get('cache_id', loop.index0)) }}" style="text-decoration: none; color: inherit;">
                                 {{ job.get('job_title', 'Untitled Role') }}
                             </a>
@@ -136,7 +141,7 @@
                     </div>
                 </div>
 
-                <span class="badge-pill {% if job.get('combined_score', 0) >= 70 %}badge-match-high{% elif job.get('combined_score', 0) >= 45 %}badge-match-med{% else %}badge-match-low{% endif %}">
+                <span class="badge-pill {% if job.get('combined_score', 0) >= 70 %}badge-match-high{% elif job.get('combined_score', 0) >= 45 %}badge-match-med{% else %}badge-match-low{% endif %}" style="margin-left: 0.5rem;">
                     {{ job.get('combined_score', 0) }}% Match
                 </span>
             </div>
