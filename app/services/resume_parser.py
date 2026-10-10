@@ -94,15 +94,27 @@ def extract_structure(text: str) -> dict:
         }
 
     email_pattern = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
-    phone_pattern = r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"
+    phone_pattern = r"(?<!\d)(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,6}(?!\d)"
+    linkedin_pattern = r"(?:https?://)?(?:www\.)?linkedin\.com/[^\s]+"
+    github_pattern = r"(?:https?://)?(?:www\.)?github\.com/[^\s]+"
 
     emails = re.findall(email_pattern, text)
-    phones = re.findall(phone_pattern, text)
+    phones_raw = re.findall(phone_pattern, text)
+    linkedins = re.findall(linkedin_pattern, text)
+    githubs = re.findall(github_pattern, text)
+
+    # Filter phones to ensure valid digit length
+    phones = [p.strip() for p in phones_raw if 9 <= len(re.sub(r'\D', '', p)) <= 15]
+
     contact = []
     if emails:
         contact.append(emails[0])
     if phones:
         contact.append(phones[0])
+    if linkedins:
+        contact.append(linkedins[0])
+    if githubs:
+        contact.append(githubs[0])
 
     lines = text.split("\n")
     education = []

@@ -199,5 +199,39 @@
             </p>
         </div>
     </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Function to visually update labels for radio buttons
+    const updateRadioVisuals = (name) => {
+        document.querySelectorAll(`input[type="radio"][name="${name}"]`).forEach(input => {
+            const label = input.closest('label');
+            if (label) {
+                // Determine if it's the larger location cards or the smaller ones
+                const isLocationCard = input.name === 'location_preference';
+                const activeBorderWidth = isLocationCard ? '2px' : '1px';
+                const inactiveBorderWidth = isLocationCard ? '2px' : '1px';
+
+                if (input.checked) {
+                    label.style.border = `${activeBorderWidth} solid var(--primary)`;
+                    label.style.backgroundColor = '#eff6ff';
+                } else {
+                    label.style.border = `${inactiveBorderWidth} solid var(--border-color)`;
+                    label.style.backgroundColor = 'white';
+                }
+            }
+        });
+    };
+
+    // Attach listeners to all radio buttons
+    const allRadios = document.querySelectorAll('input[type="radio"]');
+    allRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            updateRadioVisuals(e.target.name);
+        });
+    });
+});
+</script>
 {% endblock %}

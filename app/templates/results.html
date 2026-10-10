@@ -88,10 +88,10 @@
         </select>
     </div>
 
-    <div class="input-icon-group" style="width: 220px;">
+    <form method="GET" action="{{ url_for('jobs.results') }}" class="input-icon-group" style="width: 220px; margin: 0;">
         <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.85rem;"></i>
-        <input type="text" class="input-control" placeholder="Search jobs..." style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
-    </div>
+        <input type="text" name="q" class="input-control" placeholder="Search jobs by keywords..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
+    </form>
 </div>
 
 <!-- Main 2-Column Split -->
