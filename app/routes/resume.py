@@ -40,7 +40,7 @@ def upload():
             file.save(filepath)
 
             text = extract_text(filepath)
-            structure = extract_structure(text)
+            structure = extract_structure(text, filepath=filepath)
             skills = extract_skills(text)
             ats_score = calculate_ats_score(text, structure, skills)
 
@@ -57,6 +57,29 @@ def upload():
                 ats_score=ats_score,
             )
             db.session.add(resume)
+
+            # Auto-populate personal details on current_user
+            if structure.get("phone") and not current_user.phone:
+                current_user.phone = structure["phone"]
+            if structure.get("location") and not current_user.location:
+                current_user.location = structure["location"]
+            if structure.get("linkedin_url") and not current_user.linkedin_url:
+                current_user.linkedin_url = structure["linkedin_url"]
+            if structure.get("title_role") and (not current_user.title_role or current_user.title_role == "Job Seeker"):
+                current_user.title_role = structure["title_role"]
+            if structure.get("name") and (not current_user.name or current_user.name == "User"):
+                current_user.name = structure["name"]
+
+            # Sync JobPreference target_role and location
+            pref = JobPreference.query.filter_by(user_id=current_user.id).first()
+            if not pref:
+                pref = JobPreference(user_id=current_user.id)
+                db.session.add(pref)
+            if structure.get("title_role") and (not pref.target_role or pref.target_role == "Software Engineer"):
+                pref.target_role = structure["title_role"]
+            if structure.get("location") and (not pref.location or pref.location == "Remote"):
+                pref.location = structure["location"]
+
             db.session.commit()
 
             flash("Resume uploaded and analyzed successfully!")

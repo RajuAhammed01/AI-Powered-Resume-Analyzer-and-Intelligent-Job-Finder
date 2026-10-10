@@ -26,6 +26,21 @@ def extract_pdf(filepath):
     return "\n".join(pages)
 
 
+def extract_hyperlinks_from_pdf(filepath):
+    links = []
+    try:
+        with pdfplumber.open(filepath) as pdf:
+            for page in pdf.pages:
+                for hl in getattr(page, "hyperlinks", []):
+                    uri = hl.get("uri")
+                    if uri:
+                        val = uri.decode("utf-8") if isinstance(uri, bytes) else str(uri)
+                        links.append(val.strip())
+    except Exception as e:
+        print(f"Hyperlink extraction error: {e}")
+    return links
+
+
 def extract_docx(filepath):
     try:
         document = Document(filepath)
@@ -122,9 +137,16 @@ def calculate_ats_score(text: str, structure: dict, skills: list) -> int:
     return min(max(score, 15), 98)
 
 
-def extract_structure(text: str) -> dict:
+def extract_structure(text: str, filepath: str = None) -> dict:
     if not text:
         return {
+            "name": "",
+            "title_role": "",
+            "location": "",
+            "phone": "",
+            "email": "",
+            "linkedin_url": "",
+            "github_url": "",
             "contact_info": "",
             "education": "",
             "experience": "",
@@ -133,33 +155,89 @@ def extract_structure(text: str) -> dict:
 
     email_pattern = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
     phone_pattern = r"(?<!\d)(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,6}(?!\d)"
-    linkedin_pattern = r"(?:https?://)?(?:www\.)?linkedin\.com/[^\s]+"
-    github_pattern = r"(?:https?://)?(?:www\.)?github\.com/[^\s]+"
+    linkedin_pattern = r"(?:https?://)?(?:www\.)?linkedin\.com/(?:in/)?[a-zA-Z0-9_\-\.]+"
+    github_pattern = r"(?:https?://)?(?:www\.)?github\.com/[a-zA-Z0-9_\-\.]+"
+
+    hyperlinks = []
+    if filepath and filepath.lower().endswith(".pdf"):
+        hyperlinks = extract_hyperlinks_from_pdf(filepath)
 
     emails = re.findall(email_pattern, text)
     phones_raw = re.findall(phone_pattern, text)
-    linkedins = re.findall(linkedin_pattern, text)
-    githubs = re.findall(github_pattern, text)
+
+    linkedins = [h for h in hyperlinks if "linkedin.com" in h.lower()]
+    if not linkedins:
+        linkedins = re.findall(linkedin_pattern, text)
+
+    githubs = [h for h in hyperlinks if "github.com" in h.lower()]
+    if not githubs:
+        githubs = re.findall(github_pattern, text)
 
     # Filter phones to ensure valid digit length
     phones = [p.strip() for p in phones_raw if 9 <= len(re.sub(r'\D', '', p)) <= 15]
 
-    contact = []
-    if emails:
-        contact.append(emails[0])
-    if phones:
-        contact.append(phones[0])
-    if linkedins:
-        contact.append(linkedins[0])
-    if githubs:
-        contact.append(githubs[0])
+    primary_email = emails[0].strip() if emails else ""
+    primary_phone = phones[0].strip() if phones else ""
+    primary_linkedin = linkedins[0].strip() if linkedins else ""
+    primary_github = githubs[0].strip() if githubs else ""
 
-    lines = text.split("\n")
+    contact = []
+    if primary_email:
+        contact.append(primary_email)
+    if primary_phone:
+        contact.append(primary_phone)
+    if primary_linkedin:
+        contact.append(primary_linkedin)
+    if primary_github:
+        contact.append(primary_github)
+
+    raw_lines = text.split("\n")
+    lines = [l.strip() for l in raw_lines if l.strip()]
+
+    # 1. Detect candidate name from the top 4 lines
+    candidate_name = ""
+    for l in lines[:4]:
+        cleaned = re.sub(r"[^a-zA-Z\s\.]", "", l).strip()
+        words = cleaned.split()
+        if 2 <= len(words) <= 5 and not any(k in l.lower() for k in [
+            "curriculum", "resume", "cv", "page", "email", "phone", "profile",
+            "summary", "developer", "engineer", "analyst", "manager", "designer", "architect"
+        ]):
+            candidate_name = l.strip()
+            break
+
+    # 2. Detect title / professional role from top 6 lines
+    candidate_role = ""
+    role_keywords = [
+        "engineer", "developer", "designer", "analyst", "manager", "architect",
+        "scientist", "specialist", "administrator", "consultant", "lead", "intern", "programmer"
+    ]
+    for l in lines[:6]:
+        if l != candidate_name and any(k in l.lower() for k in role_keywords):
+            role_cand = l.split("|")[0].strip(" -|:•\t")
+            if len(role_cand) <= 60 and not any(k in role_cand.lower() for k in ["experience", "summary", "skills", "education"]):
+                candidate_role = role_cand
+                break
+
+    # 3. Detect location from header lines (e.g. 'Dhaka, Bangladesh')
+    candidate_location = ""
+    for l in lines[:6]:
+        loc_match = re.search(r"([A-Za-z\s]{2,25},\s*[A-Za-z\s]{2,25})", l)
+        if loc_match:
+            loc_candidate = loc_match.group(1).strip()
+            if not any(k in loc_candidate.lower() for k in [
+                "university", "institute", "limited", "inc", "ltd", "september",
+                "january", "february", "march", "april", "may", "june", "july",
+                "august", "october", "november", "december"
+            ]):
+                candidate_location = loc_candidate
+                break
+
     education = []
     experience = []
 
     current_section = None
-    for line in lines:
+    for line in raw_lines:
         stripped = line.strip()
         if not stripped:
             continue
@@ -190,6 +268,13 @@ def extract_structure(text: str) -> dict:
         score += min(30, max(15, len(experience) * 4))
 
     return {
+        "name": candidate_name,
+        "title_role": candidate_role,
+        "location": candidate_location,
+        "phone": primary_phone,
+        "email": primary_email,
+        "linkedin_url": primary_linkedin,
+        "github_url": primary_github,
         "contact_info": ", ".join(contact),
         "education": "\n".join(education[:5]),
         "experience": "\n".join(experience[:10]),
