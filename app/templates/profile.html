@@ -67,18 +67,19 @@
     <div style="display: flex; flex-direction: column; gap: 2rem;">
         <!-- Navigation Sub-Tabs -->
         <div class="card-panel" style="padding: 1.5rem;">
-            <div style="display: flex; gap: 1.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem; font-weight: 600; font-size: 0.95rem;">
-                <span style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;">
+            <div class="profile-tabs" style="display: flex; gap: 1.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem; font-weight: 600; font-size: 0.95rem;">
+                <span class="tab-link active" onclick="switchTab(event, 'tab-personal')" style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;">
                     <i class="fa-solid fa-user"></i> Personal Information
                 </span>
-                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-graduation-cap"></i> Education</span>
-                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-gear"></i> Skills</span>
-                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-briefcase"></i> Experience</span>
-                <span style="color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-sliders"></i> Preferences</span>
+                <span class="tab-link" onclick="switchTab(event, 'tab-education')" style="color: var(--text-muted); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;"><i class="fa-solid fa-graduation-cap"></i> Education</span>
+                <span class="tab-link" onclick="switchTab(event, 'tab-skills')" style="color: var(--text-muted); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;"><i class="fa-solid fa-gear"></i> Skills</span>
+                <span class="tab-link" onclick="switchTab(event, 'tab-experience')" style="color: var(--text-muted); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;"><i class="fa-solid fa-briefcase"></i> Experience</span>
+                <span class="tab-link" onclick="switchTab(event, 'tab-preferences')" style="color: var(--text-muted); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;"><i class="fa-solid fa-sliders"></i> Preferences</span>
             </div>
 
             <!-- Personal Information Form -->
-            <form method="POST">
+            <div id="tab-personal" class="tab-content">
+                <form method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="action" value="update_profile">
 
@@ -138,6 +139,69 @@
                     </button>
                 </div>
             </form>
+            </div>
+
+            <div id="tab-education" class="tab-content" style="display: none;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; color: var(--text-main);">Education History</h3>
+                {% if current_user.resumes and current_user.resumes[0].education %}
+                    <div style="white-space: pre-line; color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">{{ current_user.resumes[0].education }}</div>
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">No education data found. Please <a href="{{ url_for('resume.upload') }}" style="color: var(--primary);">upload your resume</a> to populate this section.</p>
+                {% endif %}
+            </div>
+
+            <div id="tab-skills" class="tab-content" style="display: none;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; color: var(--text-main);">My Skills</h3>
+                {% if current_user.resumes and current_user.resumes[0].skills %}
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        {% for skill in current_user.resumes[0].skills %}
+                            <span class="badge-pill" style="background: var(--bg-subtle); color: var(--text-main); border: 1px solid var(--border-color); font-weight: 500;">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">No skills found. Please <a href="{{ url_for('resume.upload') }}" style="color: var(--primary);">upload your resume</a> to populate this section.</p>
+                {% endif %}
+            </div>
+
+            <div id="tab-experience" class="tab-content" style="display: none;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; color: var(--text-main);">Work Experience</h3>
+                {% if current_user.resumes and current_user.resumes[0].experience %}
+                    <div style="white-space: pre-line; color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">{{ current_user.resumes[0].experience }}</div>
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">No experience data found. Please <a href="{{ url_for('resume.upload') }}" style="color: var(--primary);">upload your resume</a> to populate this section.</p>
+                {% endif %}
+            </div>
+
+            <div id="tab-preferences" class="tab-content" style="display: none;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; color: var(--text-main);">Job Preferences</h3>
+                {% if current_user.job_preference %}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div style="background: var(--bg-subtle); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Target Role</div>
+                            <div style="font-weight: 600; color: var(--text-main);">{{ current_user.job_preference.target_role }}</div>
+                        </div>
+                        <div style="background: var(--bg-subtle); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Location</div>
+                            <div style="font-weight: 600; color: var(--text-main);">{{ current_user.job_preference.location_preference }} / {{ current_user.job_preference.location }}</div>
+                        </div>
+                        <div style="background: var(--bg-subtle); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Experience Level</div>
+                            <div style="font-weight: 600; color: var(--text-main);">{{ current_user.job_preference.experience_level }}</div>
+                        </div>
+                        <div style="background: var(--bg-subtle); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Job Type</div>
+                            <div style="font-weight: 600; color: var(--text-main);">{{ current_user.job_preference.job_type }}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <a href="{{ url_for('preferences.preferences') }}" class="btn btn-outline btn-sm">
+                            <i class="fa-solid fa-pen"></i> Edit Preferences
+                        </a>
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">No job preferences set. <a href="{{ url_for('preferences.preferences') }}" style="color: var(--primary);">Set them here</a>.</p>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Change Password Card -->
@@ -288,4 +352,26 @@
         </div>
     </div>
 </div>
+
+<script>
+function switchTab(evt, tabId) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.style.display = 'none');
+
+    // Remove active styles from all tabs
+    const tabLinks = document.querySelectorAll('.tab-link');
+    tabLinks.forEach(link => {
+        link.style.color = 'var(--text-muted)';
+        link.style.borderBottom = 'none';
+        link.classList.remove('active');
+    });
+
+    // Show the selected tab and set its link style
+    document.getElementById(tabId).style.display = 'block';
+    evt.currentTarget.style.color = 'var(--primary)';
+    evt.currentTarget.style.borderBottom = '2px solid var(--primary)';
+    evt.currentTarget.classList.add('active');
+}
+</script>
 {% endblock %}

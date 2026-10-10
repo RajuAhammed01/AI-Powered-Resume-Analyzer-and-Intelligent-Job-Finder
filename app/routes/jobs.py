@@ -34,7 +34,8 @@ def results():
     resume_skills = json.loads(resume.extracted_skills or "[]") if resume.extracted_skills else []
     resume_text = resume.extracted_text or ""
 
-    target_role = pref.target_role or "Machine Learning Engineer"
+    search_query = request.args.get("q", "").strip()
+    target_role = search_query if search_query else (pref.target_role or "Machine Learning Engineer")
     location = pref.location or "Remote"
 
     jobs = fetch_jobs(target_role, location)

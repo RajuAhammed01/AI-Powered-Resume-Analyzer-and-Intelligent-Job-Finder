@@ -80,12 +80,10 @@
             <option value="score">Sort by Match Score (High to Low)</option>
             <option value="title">Sort by Job Title</option>
         </select>
-    </div>
-
-    <div class="input-icon-group" style="width: 240px;">
+    <form method="GET" action="{{ url_for('jobs.results') }}" class="input-icon-group" style="width: 250px; margin: 0;">
         <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.85rem;"></i>
-        <input type="text" id="search-input" oninput="filterJobs()" class="input-control" placeholder="Search by title or skill..." style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
-    </div>
+        <input type="text" id="search-input" name="q" oninput="filterJobs()" class="input-control" placeholder="Search by title, skill, role..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
+    </form>
 </div>
 
 <!-- Main 2-Column Split -->
