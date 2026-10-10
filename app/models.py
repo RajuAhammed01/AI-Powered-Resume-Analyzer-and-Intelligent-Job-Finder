@@ -91,6 +91,8 @@ class SavedJob(db.Model):
     matched_skills = db.Column(db.Text, default="[]")
     missing_skills = db.Column(db.Text, default="[]")
     apply_link = db.Column(db.String(500))
+    status = db.Column(db.String(50), default="Saved")
+    applied_date = db.Column(db.DateTime, nullable=True)
     saved_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 

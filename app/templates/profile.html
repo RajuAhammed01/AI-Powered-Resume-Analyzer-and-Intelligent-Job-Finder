@@ -37,8 +37,8 @@
 
             <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
                 <div><i class="fa-regular fa-envelope" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.email }}</div>
-                <div><i class="fa-solid fa-phone" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.phone if current_user.phone else '+880 1406 450261' }}</div>
-                <div><i class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.location if current_user.location else 'Shyamoli, Dhaka, Bangladesh' }}</div>
+                <div><i class="fa-solid fa-phone" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.phone if current_user.phone else 'Not provided' }}</div>
+                <div><i class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 0.4rem;"></i> {{ current_user.location if current_user.location else 'Not provided' }}</div>
             </div>
 
             <button class="btn btn-outline btn-sm" onclick="document.getElementById('name').focus();">
@@ -79,6 +79,22 @@
 
             <!-- Personal Information Form -->
             <div id="tab-personal" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin: 0;">Personal Details</h3>
+                        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Auto-populated from your uploaded resume or manually editable.</p>
+                    </div>
+                    {% if resume %}
+                    <form method="POST" style="margin: 0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="sync_from_resume">
+                        <button type="submit" class="btn btn-outline btn-sm" title="Re-extract and fill fields from your uploaded resume">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> Auto-fill from Resume
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
                 <form method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="action" value="update_profile">
@@ -93,10 +109,18 @@
                     </div>
 
                     <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="title_role">Professional Title / Role</label>
+                        <div class="input-icon-group">
+                            <i class="fa-solid fa-briefcase field-icon"></i>
+                            <input type="text" id="title_role" name="title_role" class="input-control" value="{{ current_user.title_role or '' }}" placeholder="e.g. Software Engineer (Android & Flutter)">
+                        </div>
+                    </div>
+
+                    <div class="form-field" style="margin: 0;">
                         <label class="form-label" for="location">Location</label>
                         <div class="input-icon-group">
                             <i class="fa-solid fa-location-dot field-icon"></i>
-                            <input type="text" id="location" name="location" class="input-control" value="{{ current_user.location if current_user.location else 'Shyamoli, Dhaka, Bangladesh' }}">
+                            <input type="text" id="location" name="location" class="input-control" value="{{ current_user.location or '' }}" placeholder="e.g. Dhaka, Bangladesh">
                         </div>
                     </div>
 
@@ -109,26 +133,26 @@
                     </div>
 
                     <div class="form-field" style="margin: 0;">
-                        <label class="form-label" for="date_of_birth">Date of Birth</label>
-                        <div class="input-icon-group">
-                            <i class="fa-regular fa-calendar field-icon"></i>
-                            <input type="text" id="date_of_birth" name="date_of_birth" class="input-control" value="{{ current_user.date_of_birth if current_user.date_of_birth else 'Not provided' }}">
-                        </div>
-                    </div>
-
-                    <div class="form-field" style="margin: 0;">
                         <label class="form-label" for="phone">Phone Number</label>
                         <div class="input-icon-group">
                             <i class="fa-solid fa-phone field-icon"></i>
-                            <input type="text" id="phone" name="phone" class="input-control" value="{{ current_user.phone if current_user.phone else '+880 1406 450261' }}">
+                            <input type="text" id="phone" name="phone" class="input-control" value="{{ current_user.phone or '' }}" placeholder="e.g. +880 1700 000000">
                         </div>
                     </div>
 
                     <div class="form-field" style="margin: 0;">
+                        <label class="form-label" for="date_of_birth">Date of Birth</label>
+                        <div class="input-icon-group">
+                            <i class="fa-regular fa-calendar field-icon"></i>
+                            <input type="text" id="date_of_birth" name="date_of_birth" class="input-control" value="{{ current_user.date_of_birth or '' }}" placeholder="YYYY-MM-DD">
+                        </div>
+                    </div>
+
+                    <div class="form-field" style="margin: 0; grid-column: span 2;">
                         <label class="form-label" for="linkedin_url">LinkedIn Profile</label>
                         <div class="input-icon-group">
                             <i class="fa-brands fa-linkedin field-icon"></i>
-                            <input type="text" id="linkedin_url" name="linkedin_url" class="input-control" value="{{ current_user.linkedin_url if current_user.linkedin_url else 'linkedin.com/in/rajuahammed86' }}">
+                            <input type="text" id="linkedin_url" name="linkedin_url" class="input-control" value="{{ current_user.linkedin_url or '' }}" placeholder="e.g. https://www.linkedin.com/in/username">
                         </div>
                     </div>
                 </div>

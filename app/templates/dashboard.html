@@ -27,44 +27,129 @@
 
 <!-- 4 Top Stat Cards -->
 <div class="stat-card-grid">
-    <div class="stat-card">
+    <div class="stat-card" title="Computed based on contact info, skills, education, and experience depth in your uploaded CV.">
         <div class="stat-icon-wrapper stat-icon-green">
             <i class="fa-solid fa-chart-pie"></i>
         </div>
         <div>
             <div class="stat-val">{{ resume.completeness_score if resume else 0 }}%</div>
-            <div class="stat-label">Resume Completeness</div>
+            <div class="stat-label">
+                Resume Completeness <i class="fa-solid fa-circle-info" style="font-size: 0.75rem; color: var(--text-light);" title="Evaluates all required professional resume sections."></i>
+            </div>
         </div>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card" title="Extracted from your resume via NLP & spaCy named-entity recognition.">
         <div class="stat-icon-wrapper stat-icon-purple">
             <i class="fa-solid fa-code"></i>
         </div>
         <div>
-            <div class="stat-val">{{ extracted_skills_count if extracted_skills_count is defined else (resume.skills|length if resume and resume.skills else 0) }}</div>
-            <div class="stat-label">Extracted Skills</div>
+            <div class="stat-val">{{ extracted_skills_count }}</div>
+            <div class="stat-label">
+                Extracted Skills <i class="fa-solid fa-circle-info" style="font-size: 0.75rem; color: var(--text-light);" title="Identified technical and soft skills in your profile."></i>
+            </div>
         </div>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card" title="Hybrid compatibility score combining keyword match and TF-IDF semantic vector similarity.">
         <div class="stat-icon-wrapper stat-icon-blue">
             <i class="fa-solid fa-bullseye"></i>
         </div>
         <div>
-            <div class="stat-val">{{ top_match_score if top_match_score is defined else 87 }}%</div>
-            <div class="stat-label">Top Match Score</div>
+            <div class="stat-val">
+                {% if resume and top_match_score is not none %}
+                    {{ top_match_score }}%
+                {% else %}
+                    <span style="font-size: 1.5rem; color: var(--text-muted);">--</span>
+                {% endif %}
+            </div>
+            <div class="stat-label">
+                Top Match Score <i class="fa-solid fa-circle-info" style="font-size: 0.75rem; color: var(--text-light);" title="Highest alignment rating against available positions."></i>
+            </div>
         </div>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card" title="Total jobs tracked in your job search lifecycle.">
         <div class="stat-icon-wrapper stat-icon-orange">
             <i class="fa-solid fa-bookmark"></i>
         </div>
         <div>
             <div class="stat-val">{{ saved_jobs|length if saved_jobs else 0 }}</div>
-            <div class="stat-label">Saved Jobs</div>
+            <div class="stat-label">
+                Tracked Jobs <i class="fa-solid fa-circle-info" style="font-size: 0.75rem; color: var(--text-light);" title="Positions currently saved, applied, or in interview stage."></i>
+            </div>
         </div>
+    </div>
+</div>
+
+<!-- Job Application Lifecycle Pipeline Widget -->
+<div class="card-panel" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-main);">
+                <i class="fa-solid fa-timeline" style="color: var(--primary); margin-right: 0.4rem;"></i> Application Lifecycle Funnel
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                Track your active job search stages from discovery to offers.
+            </p>
+        </div>
+        <a href="{{ url_for('jobs.saved_jobs') }}" class="btn btn-outline btn-sm">
+            Manage Applications <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="pipeline-grid" style="margin-bottom: 0;">
+        <a href="{{ url_for('jobs.saved_jobs') }}?tab=saved" class="pipeline-card" style="text-decoration: none; color: inherit;">
+            <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Bookmarked</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #2563eb; font-family: var(--font-heading);">
+                    {{ pipeline_stats.saved if pipeline_stats else 0 }}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Ready to apply</div>
+            </div>
+            <div class="pipeline-badge" style="background: #eff6ff; color: #2563eb;">
+                <i class="fa-regular fa-bookmark"></i>
+            </div>
+        </a>
+
+        <a href="{{ url_for('jobs.saved_jobs') }}?tab=applied" class="pipeline-card" style="text-decoration: none; color: inherit;">
+            <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Applied</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #059669; font-family: var(--font-heading);">
+                    {{ pipeline_stats.applied if pipeline_stats else 0 }}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Sent applications</div>
+            </div>
+            <div class="pipeline-badge" style="background: #ecfdf5; color: #059669;">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+        </a>
+
+        <a href="{{ url_for('jobs.saved_jobs') }}?tab=interview" class="pipeline-card" style="text-decoration: none; color: inherit;">
+            <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Interviews</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #7c3aed; font-family: var(--font-heading);">
+                    {{ pipeline_stats.interview if pipeline_stats else 0 }}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Scheduled rounds</div>
+            </div>
+            <div class="pipeline-badge" style="background: #f5f3ff; color: #7c3aed;">
+                <i class="fa-solid fa-comments"></i>
+            </div>
+        </a>
+
+        <a href="{{ url_for('jobs.saved_jobs') }}?tab=offer" class="pipeline-card" style="text-decoration: none; color: inherit;">
+            <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Offers</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #d97706; font-family: var(--font-heading);">
+                    {{ pipeline_stats.offer if pipeline_stats else 0 }}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Final decisions</div>
+            </div>
+            <div class="pipeline-badge" style="background: #fffbeb; color: #d97706;">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+        </a>
     </div>
 </div>
 
@@ -85,10 +170,10 @@
             <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                     <div style="width: 48px; height: 48px; border-radius: 12px; background: #dbeafe; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                        <i class="fa-solid fa-file-pdf"></i>
+                        <i class="fa-solid fa-file-lines"></i>
                     </div>
                     <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Resume_Parsed.pdf</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">{{ resume.filename or 'My_Resume.pdf' }}</div>
                         <div style="font-size: 0.8rem; color: var(--text-muted);">
                             Completeness Score: <strong style="color: var(--success);">{{ resume.completeness_score }}%</strong>
                         </div>
@@ -102,7 +187,7 @@
 
                 <div style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.82rem; color: var(--text-muted);">
                     {% if resume.contact_info %}
-                        <div><i class="fa-regular fa-envelope" style="color: var(--primary);"></i> {{ resume.contact_info[:35] }}</div>
+                        <div><i class="fa-regular fa-envelope" style="color: var(--primary);"></i> {{ resume.contact_info[:40] }}</div>
                     {% endif %}
                 </div>
             </div>
@@ -112,8 +197,8 @@
                 <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 0.35rem;">
                     <i class="fa-solid fa-graduation-cap" style="color: var(--primary); margin-right: 0.4rem;"></i> Education
                 </div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); background: white; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                    {{ resume.education if resume.education else 'B.Sc in Computer Science and Engineering' }}
+                <div style="font-size: 0.85rem; color: var(--text-muted); background: white; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); white-space: pre-line;">
+                    {{ resume.education if resume.education else 'Education information not identified in resume.' }}
                 </div>
             </div>
 
@@ -121,35 +206,33 @@
                 <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 0.35rem;">
                     <i class="fa-solid fa-briefcase" style="color: var(--primary); margin-right: 0.4rem;"></i> Experience
                 </div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); background: white; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                    {{ resume.experience if resume.experience else 'Personal projects, software development & self-learning' }}
+                <div style="font-size: 0.85rem; color: var(--text-muted); background: white; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); white-space: pre-line;">
+                    {{ resume.experience if resume.experience else 'Work experience not identified in resume.' }}
                 </div>
             </div>
 
             <!-- Extracted & Missing Badges -->
             <div style="margin-bottom: 1.25rem;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.5rem;">Extracted Skills</div>
+                <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.5rem;">Extracted Skills ({{ resume.skills|length }})</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-                    {% for skill in resume.skills[:8] if resume.skills %}
+                    {% for skill in resume.skills[:12] %}
                         <span class="badge-pill badge-skill-extracted">{{ skill }}</span>
                     {% else %}
-                        <span class="badge-pill badge-skill-extracted">Python</span>
-                        <span class="badge-pill badge-skill-extracted">SQL</span>
-                        <span class="badge-pill badge-skill-extracted">Django</span>
-                        <span class="badge-pill badge-skill-extracted">Pandas</span>
+                        <span style="font-size: 0.82rem; color: var(--text-muted);">No recognized skills found in text.</span>
                     {% endfor %}
                 </div>
             </div>
 
+            {% if skill_gap_summary %}
             <div style="margin-bottom: 1.5rem;">
                 <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.5rem;">Top Missing Skills</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-                    <span class="badge-pill badge-skill-missing">Docker</span>
-                    <span class="badge-pill badge-skill-missing">AWS</span>
-                    <span class="badge-pill badge-skill-missing">Kubernetes</span>
-                    <span class="badge-pill badge-skill-missing">Machine Learning</span>
+                    {% for item in skill_gap_summary[:4] %}
+                        <span class="badge-pill badge-skill-missing">{{ item.skill }}</span>
+                    {% endfor %}
                 </div>
             </div>
+            {% endif %}
 
             <div style="display: flex; gap: 0.75rem;">
                 <a href="{{ url_for('jobs.results') }}" class="btn btn-primary btn-sm" style="flex: 1;">View Match Analysis</a>
@@ -157,90 +240,96 @@
             </div>
 
         {% else %}
-            <div style="text-align: center; padding: 3rem 1rem;">
-                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                <h4 style="font-size: 1.1rem; font-weight: 700;">No resume uploaded yet</h4>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Upload your CV to get instant skill extraction and job matching score.</p>
-                <a href="{{ url_for('resume.upload') }}" class="btn btn-primary">Upload Resume Now</a>
+            <div style="text-align: center; padding: 3rem 1.5rem; background: var(--bg-subtle); border: 2px dashed var(--border-color); border-radius: var(--radius-md);">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1.25rem;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">No Resume Uploaded Yet</h4>
+                <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 320px; margin: 0 auto 1.5rem; line-height: 1.5;">
+                    Upload your CV (PDF or DOCX) to extract skills, evaluate ATS friendliness, and calculate compatibility scores.
+                </p>
+                <a href="{{ url_for('resume.upload') }}" class="btn btn-primary">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume Now
+                </a>
             </div>
         {% endif %}
     </div>
 
-    <!-- Right Column: Top 5 Recommended Jobs Card -->
+    <!-- Right Column: Top Recommended Jobs Card -->
     <div class="card-panel">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; margin: 0; color: var(--text-main);">
                 Top Recommended Jobs
             </h3>
-            <a href="{{ url_for('jobs.results') }}" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">
-                View All <i class="fa-solid fa-arrow-right"></i>
-            </a>
+            {% if resume and recommended_jobs %}
+                <a href="{{ url_for('jobs.results') }}" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">
+                    View All <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            {% else %}
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Requires Resume</span>
+            {% endif %}
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <!-- Mock / Real Job Row 1 -->
-            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <div class="mock-company-icon" style="background: #ea4335;">G</div>
-                        <div>
-                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Machine Learning Engineer</div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> Google • Remote</div>
+        {% if resume and recommended_jobs %}
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for job in recommended_jobs %}
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <div class="mock-company-icon" style="background: {% if loop.index == 1 %}#2563eb{% elif loop.index == 2 %}#7c3aed{% else %}#059669{% endif %};">
+                                    {{ (job.employer_name or job.company or 'J')[:1]|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">{{ job.job_title }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                        <span>{{ job.employer_name or job.company or 'Company' }}</span> • 
+                                        <span><i class="fa-solid fa-location-dot"></i> {{ job.job_city or job.location or 'Remote' }}</span>
+                                        {% if 'web' in (job.get('source_type', '')|lower) or 'web' in (job.get('source', '')|lower) %}
+                                            <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.68rem; padding: 0.1rem 0.4rem;">
+                                                <i class="fa-solid fa-satellite-dish"></i> Live Web
+                                            </span>
+                                        {% else %}
+                                            <span class="badge-pill" style="background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.68rem; padding: 0.1rem 0.4rem;">
+                                                <i class="fa-solid fa-database"></i> Dataset
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge-pill {% if job.combined_score >= 70 %}badge-match-high{% else %}badge-match-med{% endif %}">
+                                {{ job.combined_score }}% Match
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; border-top: 1px dashed var(--border-color); padding-top: 0.65rem;">
+                            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                                {% for s in (job.matched_skills or job.job_skills)[:3] %}
+                                    <span class="badge-pill badge-skill-extracted">{{ s }}</span>
+                                {% else %}
+                                    <span class="badge-pill badge-skill-extracted">Tech</span>
+                                {% endfor %}
+                            </div>
+                            <a href="{{ url_for('jobs.job_detail', index=job.cache_id) }}" class="btn btn-outline btn-sm">View Details</a>
                         </div>
                     </div>
-                    <span class="badge-pill badge-match-high">92% Match</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; border-top: 1px dashed var(--border-color); padding-top: 0.65rem;">
-                    <div style="display: flex; gap: 0.35rem;">
-                        <span class="badge-pill badge-skill-extracted">Python</span>
-                        <span class="badge-pill badge-skill-extracted">TensorFlow</span>
-                    </div>
-                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">View Details</a>
-                </div>
+                {% endfor %}
             </div>
-
-            <!-- Job Row 2 -->
-            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <div class="mock-company-icon" style="background: #ff9900;">A</div>
-                        <div>
-                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Data Scientist</div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> Amazon • New York, NY</div>
-                        </div>
-                    </div>
-                    <span class="badge-pill badge-match-high">87% Match</span>
+        {% else %}
+            <!-- Upload action when no resume exists -->
+            <div style="text-align: center; padding: 3rem 1.5rem; background: var(--bg-subtle); border: 2px dashed var(--border-color); border-radius: var(--radius-md);">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1.25rem;">
+                    <i class="fa-solid fa-bullseye"></i>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; border-top: 1px dashed var(--border-color); padding-top: 0.65rem;">
-                    <div style="display: flex; gap: 0.35rem;">
-                        <span class="badge-pill badge-skill-extracted">Python</span>
-                        <span class="badge-pill badge-skill-extracted">Pandas</span>
-                    </div>
-                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">View Details</a>
-                </div>
+                <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">
+                    Matching Is Not Active
+                </h4>
+                <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 360px; margin: 0 auto 1.5rem; line-height: 1.5;">
+                    Personalized match scores and job recommendations are computed from your resume. Upload your resume to activate matching.
+                </p>
+                <a href="{{ url_for('resume.upload') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume to Unlock Matches
+                </a>
             </div>
-
-            <!-- Job Row 3 -->
-            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <div class="mock-company-icon" style="background: #00a4ef;">M</div>
-                        <div>
-                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">AI Engineer</div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> Microsoft • Redmond, WA</div>
-                        </div>
-                    </div>
-                    <span class="badge-pill badge-match-high">83% Match</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; border-top: 1px dashed var(--border-color); padding-top: 0.65rem;">
-                    <div style="display: flex; gap: 0.35rem;">
-                        <span class="badge-pill badge-skill-extracted">Python</span>
-                        <span class="badge-pill badge-skill-extracted">Machine Learning</span>
-                    </div>
-                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">View Details</a>
-                </div>
-            </div>
-        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -252,64 +341,43 @@
                 Skill Gap Summary
             </h3>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
-                Top 5 skills you should learn next based on job market demand and your profile.
+                High-demand skills you should learn next based on market demand and your profile.
             </p>
         </div>
-        <a href="{{ url_for('jobs.results') }}" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">
-            View Learning Resources <i class="fa-solid fa-arrow-right"></i>
-        </a>
+        {% if resume and skill_gap_summary %}
+            <a href="{{ url_for('jobs.results') }}" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">
+                View Learning Resources <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        {% endif %}
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
-        <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem;">
-                <span>1. Django</span>
-                <span style="color: #ef4444; font-size: 0.75rem;">High demand</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                <div style="width: 85%; height: 100%; background: #ef4444; border-radius: 3px;"></div>
-            </div>
+    {% if resume and skill_gap_summary %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
+            {% for item in skill_gap_summary %}
+                <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        <span>{{ loop.index }}. {{ item.skill }}</span>
+                        <span style="color: {{ item.color }}; font-size: 0.75rem;">{{ item.level }}</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                        <div style="width: {{ item.demand }}%; height: 100%; background: {{ item.color }}; border-radius: 3px;"></div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-
-        <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem;">
-                <span>2. Docker</span>
-                <span style="color: #ef4444; font-size: 0.75rem;">High demand</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                <div style="width: 78%; height: 100%; background: #ef4444; border-radius: 3px;"></div>
-            </div>
+    {% else %}
+        <div style="text-align: center; padding: 2.2rem 1.5rem; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+            <i class="fa-solid fa-chart-simple" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 0.75rem; display: block;"></i>
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+                No Skill Gap Data Available
+            </h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                Upload your resume to compare your current skillset against active job market requirements and discover what to learn next.
+            </p>
+            <a href="{{ url_for('resume.upload') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
+            </a>
         </div>
-
-        <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem;">
-                <span>3. AWS</span>
-                <span style="color: #f59e0b; font-size: 0.75rem;">Medium demand</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                <div style="width: 65%; height: 100%; background: #f59e0b; border-radius: 3px;"></div>
-            </div>
-        </div>
-
-        <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem;">
-                <span>4. Data Analysis</span>
-                <span style="color: #f59e0b; font-size: 0.75rem;">Medium demand</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                <div style="width: 60%; height: 100%; background: #f59e0b; border-radius: 3px;"></div>
-            </div>
-        </div>
-
-        <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem;">
-                <span>5. Machine Learning</span>
-                <span style="color: #f59e0b; font-size: 0.75rem;">Medium demand</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                <div style="width: 55%; height: 100%; background: #f59e0b; border-radius: 3px;"></div>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
