@@ -97,8 +97,7 @@ def scrape_remotive(role: str = "", limit: int = 15) -> list[dict]:
         for item in data:
             title = sanitize_text(item.get("title", ""))
             company = sanitize_text(item.get("company_name", "")) or "Hiring Company"
-            location = sanitize_text(item.get("candidate_required_location", "")) or "Remote"
-            url_apply = item.get("url") or f"https://www.google.com/search?q={urllib.parse.quote(title + ' ' + company)}"
+            url_apply = item.get("url") or f"https://www.linkedin.com/jobs/search/?keywords={urllib.parse.quote(title + ' ' + company)}"
             description = sanitize_text(clean_html(item.get("description", "")))
             tags = [sanitize_text(t) for t in item.get("tags", []) if t]
             salary = sanitize_text(item.get("salary", ""))

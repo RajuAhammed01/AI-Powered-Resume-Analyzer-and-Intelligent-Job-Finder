@@ -47,10 +47,25 @@
             <span class="badge-pill {% if job.get('combined_score', 0) >= 70 %}badge-match-high{% else %}badge-match-med{% endif %}" style="font-size: 1.05rem; padding: 0.5rem 1.2rem;">
                 <i class="fa-solid fa-bullseye"></i> {{ job.get('combined_score', job.get('match_score', 80)) }}% Match
             </span>
-            <div style="display: flex; gap: 0.75rem;">
-                <a href="{{ job.get('job_apply_link', '#') }}" target="_blank" class="btn btn-primary btn-pill">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply Now
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
+                <!-- Primary Direct Apply -->
+                <a href="{{ job.get('job_apply_link', '#') }}" target="_blank" class="btn btn-primary btn-pill" id="primaryApplyBtn">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    {% if job.get('official_career_url') %}
+                        Official Career Portal
+                    {% elif 'web' in (job.get('source_type', '')|lower) %}
+                        Apply on {{ job.get('source', 'Job Board') }}
+                    {% else %}
+                        Apply via LinkedIn Jobs
+                    {% endif %}
                 </a>
+
+                <!-- Quick Apply with Resume Modal Trigger -->
+                <button type="button" class="btn btn-secondary btn-pill" onclick="document.getElementById('quickApplyModal').style.display='flex'">
+                    <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Quick Apply with Resume
+                </button>
+
+                <!-- Save Job -->
                 <form method="POST" action="{{ url_for('jobs.save_job') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
@@ -58,8 +73,8 @@
                     <input type="hidden" name="location" value="{{ job.get('job_city') or job.get('location', 'Remote') }}">
                     <input type="hidden" name="apply_link" value="{{ job.get('job_apply_link', '#') }}">
                     <input type="hidden" name="match_score" value="{{ job.get('combined_score', 80) }}">
-                    <button type="submit" class="btn btn-outline">
-                        <i class="fa-regular fa-bookmark"></i> Save Job
+                    <button type="submit" class="btn btn-outline" title="Save Job">
+                        <i class="fa-regular fa-bookmark"></i> Save
                     </button>
                 </form>
             </div>
@@ -161,7 +176,40 @@
             <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.85rem; color: var(--text-muted);">
                 <div><i class="fa-solid fa-location-dot" style="width: 20px; color: var(--primary);"></i> {{ job.get('job_city') or job.get('location') or 'Remote / Various' }}</div>
                 <div><i class="fa-solid fa-briefcase" style="width: 20px; color: var(--primary);"></i> {{ job.get('job_employment_type', 'Full-time') }}</div>
-                <div><i class="fa-solid fa-magnifying-glass" style="width: 20px; color: var(--primary);"></i> <a href="https://www.google.com/search?q={{ job.get('employer_name', 'Company') }}+careers" target="_blank" style="color: var(--primary); text-decoration: none;">Search Company Profile</a></div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.85rem; border-top: 1px solid var(--border-color); padding-top: 0.85rem; margin-top: 0.75rem;">
+                <div style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light);">
+                    Application Channels
+                </div>
+                {% if job.get('official_career_url') %}
+                <div>
+                    <i class="fa-solid fa-building-circle-arrow-right" style="width: 20px; color: var(--primary);"></i>
+                    <a href="{{ job.get('official_career_url') }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                        Official Career Portal <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
+                    </a>
+                </div>
+                {% endif %}
+                <div>
+                    <i class="fa-brands fa-linkedin" style="width: 20px; color: #0a66c2;"></i>
+                    <a href="{{ job.get('linkedin_apply_link') or ('https://www.linkedin.com/jobs/search/?keywords=' + (job.get('job_title','')|urlencode) + '+' + (job.get('employer_name', '')|urlencode)) }}" target="_blank" style="color: #0a66c2; font-weight: 600; text-decoration: none;">
+                        Apply via LinkedIn Jobs <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
+                    </a>
+                </div>
+                <div>
+                    <i class="fa-solid fa-layer-group" style="width: 20px; color: #ea4335;"></i>
+                    <a href="{{ job.get('google_jobs_link') or ('https://www.google.com/search?q=' + (job.get('job_title','')|urlencode) + '+' + (job.get('employer_name', '')|urlencode) + '+jobs&ibp=htl;jobs') }}" target="_blank" style="color: #ea4335; text-decoration: none;">
+                        Google for Jobs Board <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
+                    </a>
+                </div>
+                {% if job.get('bdjobs_link') or ('bangladesh' in ((job.get('job_city') or job.get('location', ''))|lower)) or ('dhaka' in ((job.get('job_city') or job.get('location', ''))|lower)) %}
+                <div>
+                    <i class="fa-solid fa-briefcase" style="width: 20px; color: #059669;"></i>
+                    <a href="{{ job.get('bdjobs_link') or ('https://jobs.bdjobs.com/jobsearch.asp?txtsearch=' + (job.get('job_title','')|urlencode)) }}" target="_blank" style="color: #059669; text-decoration: none;">
+                        Search on Bdjobs <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -222,6 +270,84 @@
                 {% endfor %}
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Quick Apply Modal -->
+<div id="quickApplyModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: white; border-radius: var(--radius-lg); width: 100%; max-width: 560px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border-color); overflow: hidden; animation: fadeIn 0.2s ease-out;">
+        <!-- Modal Header -->
+        <div style="padding: 1.25rem 1.5rem; background: var(--bg-subtle); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main);">Quick Apply with AI Resume</h3>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ job.get('job_title') }} • {{ job.get('employer_name') or job.get('company') }}</div>
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('quickApplyModal').style.display='none'" style="background: none; border: none; font-size: 1.25rem; color: var(--text-light); cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body Form -->
+        <form method="POST" action="{{ url_for('jobs.apply_job') }}" style="padding: 1.5rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
+            <input type="hidden" name="company" value="{{ job.get('employer_name') or job.get('company', '') }}">
+            <input type="hidden" name="location" value="{{ job.get('job_city') or job.get('location', 'Remote') }}">
+            <input type="hidden" name="apply_link" value="{{ job.get('job_apply_link', '#') }}">
+            <input type="hidden" name="match_score" value="{{ job.get('combined_score', 80) }}">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Candidate Name</label>
+                    <input type="text" class="form-control" value="{{ current_user.name }}" readonly style="background: var(--bg-subtle);">
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Email Address</label>
+                    <input type="text" class="form-control" value="{{ current_user.email }}" readonly style="background: var(--bg-subtle);">
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Phone Number</label>
+                    <input type="text" class="form-control" value="{{ current_user.phone or 'Not provided' }}" readonly style="background: var(--bg-subtle);">
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Professional Role</label>
+                    <input type="text" class="form-control" value="{{ current_user.title_role or 'Candidate' }}" readonly style="background: var(--bg-subtle);">
+                </div>
+            </div>
+
+            <!-- Attached Resume Banner -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <i class="fa-solid fa-file-pdf" style="color: #16a34a; font-size: 1.35rem;"></i>
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.85rem; color: #166534;">{{ resume.filename if resume else 'Active Verified Resume' }}</div>
+                        <div style="font-size: 0.75rem; color: #15803d;">ATS Compatibility Score: {{ resume.ats_score if resume else 85 }}%</div>
+                    </div>
+                </div>
+                <span class="badge-pill badge-match-high" style="font-size: 0.75rem;">
+                    {{ job.get('combined_score', 80) }}% Match
+                </span>
+            </div>
+
+            <!-- Note / Message -->
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Note / Message to Employer (Optional)</label>
+                <textarea name="cover_note" class="form-control" rows="2" style="font-size: 0.82rem; line-height: 1.4;">I am interested in applying for the {{ job.get('job_title') }} position at {{ job.get('employer_name') or job.get('company') }}. My qualifications and technical skills closely match your requirements.</textarea>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('quickApplyModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm btn-pill">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Application
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

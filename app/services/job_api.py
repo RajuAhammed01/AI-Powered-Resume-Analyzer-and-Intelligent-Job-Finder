@@ -58,7 +58,7 @@ def fetch_jobs(role: str = "", location: str = "Remote", source: str = "all") ->
                         "location": item.get("job_city") or item.get("job_country") or clean_loc,
                         "job_employment_type": item.get("job_employment_type", "Full-time"),
                         "job_description": item.get("job_description", "")[:1200],
-                        "job_apply_link": item.get("job_apply_link") or f"https://www.google.com/search?q={urllib.parse.quote(clean_role + ' jobs')}",
+                        "job_apply_link": item.get("job_apply_link") or f"https://www.linkedin.com/jobs/search/?keywords={urllib.parse.quote(clean_role + ' ' + item.get('employer_name', ''))}",
                         "job_skills": [],
                         "source": "RapidAPI JSearch",
                         "source_type": "web",

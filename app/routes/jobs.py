@@ -73,18 +73,54 @@ def job_detail(index):
     jobs = USER_JOBS_CACHE.get(current_user.id, [])
     if 0 <= index < len(jobs):
         job = jobs[index]
+        resume = Resume.query.filter_by(user_id=current_user.id).order_by(Resume.upload_date.desc()).first()
         learning_resources = suggest_learning(job.get("missing_skills", []))
         similar_jobs = [j for i, j in enumerate(jobs) if i != index][:3]
         return render_template(
             "job_detail.html",
             job=job,
             index=index,
+            resume=resume,
             learning_resources=learning_resources,
             similar_jobs=similar_jobs,
         )
 
     flash("Job details not found in cache. Refreshing recommendations.")
     return redirect(url_for("jobs.results"))
+
+
+@jobs_bp.route("/apply-job", methods=["POST"])
+@login_required
+def apply_job():
+    from datetime import datetime
+    job_title = request.form.get("job_title", "").strip()
+    company = request.form.get("company", "").strip()
+    apply_link = request.form.get("apply_link", "").strip()
+    location = request.form.get("location", "Remote").strip()
+    match_score = int(request.form.get("match_score", 85))
+
+    existing = SavedJob.query.filter_by(user_id=current_user.id, job_title=job_title, company=company).first()
+    if existing:
+        existing.status = "Applied"
+        existing.applied_date = datetime.utcnow()
+        if apply_link:
+            existing.apply_link = apply_link
+    else:
+        applied = SavedJob(
+            user_id=current_user.id,
+            job_title=job_title,
+            company=company,
+            apply_link=apply_link,
+            location=location,
+            match_score=match_score,
+            status="Applied",
+            applied_date=datetime.utcnow(),
+        )
+        db.session.add(applied)
+
+    db.session.commit()
+    flash(f"🎉 Application submitted successfully for {job_title} at {company}! Your profile and resume have been forwarded.")
+    return redirect(request.referrer or url_for("jobs.saved_jobs"))
 
 
 @jobs_bp.route("/saved-jobs")

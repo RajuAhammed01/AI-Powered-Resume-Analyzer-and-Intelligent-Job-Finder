@@ -40,18 +40,33 @@
                     </div>
                 </div>
 
-                <span class="badge-pill badge-match-high">
-                    {{ job.match_score }}% Match
-                </span>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                    <span class="badge-pill badge-match-high">
+                        {{ job.match_score }}% Match
+                    </span>
+                    {% if job.status == 'Applied' %}
+                        <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.72rem;">
+                            <i class="fa-solid fa-circle-check"></i> Applied
+                        </span>
+                    {% else %}
+                        <span class="badge-pill" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 0.72rem;">
+                            <i class="fa-regular fa-bookmark"></i> Bookmarked
+                        </span>
+                    {% endif %}
+                </div>
             </div>
 
-            <div style="display: flex; gap: 1rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <div style="display: flex; gap: 1rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
                 <span><i class="fa-solid fa-location-dot"></i> {{ job.location }}</span>
                 <span><i class="fa-solid fa-clock"></i> {{ job.employment_type }}</span>
             </div>
 
             <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 1.25rem;">
-                Saved on {{ job.saved_date.strftime('%b %d, %Y') if job.saved_date else 'Recently' }}
+                {% if job.status == 'Applied' and job.applied_date %}
+                    <span style="color: #047857; font-weight: 600;"><i class="fa-solid fa-paper-plane"></i> Applied on {{ job.applied_date.strftime('%b %d, %Y') }}</span>
+                {% else %}
+                    Saved on {{ job.saved_date.strftime('%b %d, %Y') if job.saved_date else 'Recently' }}
+                {% endif %}
             </div>
         </div>
 
