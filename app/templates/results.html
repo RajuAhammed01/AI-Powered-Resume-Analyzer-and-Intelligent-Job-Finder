@@ -9,11 +9,26 @@
         </div>
         <div>
             <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin: 0;">
-                Job Recommendations
+                Live Job Recommendations
             </h1>
             <p style="color: var(--text-muted); font-size: 0.925rem; margin: 0;">
-                Based on your resume, skills, and preferences. Find the best jobs that match your profile.
+                Real-time active openings matched to your verified skills, ATS evaluation, and preferences.
             </p>
+            {% if candidate_profile %}
+            <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="badge-pill" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.8rem; font-weight: 700; padding: 0.2rem 0.65rem;">
+                    <i class="fa-solid fa-user-tie"></i> Profile: {{ candidate_profile.domain_name }}
+                </span>
+                <span class="badge-pill" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.65rem;">
+                    <i class="fa-solid fa-crosshairs"></i> Target Roles: {{ candidate_profile.search_queries|join(' • ') }}
+                </span>
+                {% if is_internship_seeking %}
+                <span class="badge-pill" style="background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; font-size: 0.8rem; font-weight: 700; padding: 0.2rem 0.65rem;">
+                    <i class="fa-solid fa-graduation-cap"></i> Internship Seeker Mode Active (Prioritizing Relevant Internships & Entry-Level)
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -32,11 +47,11 @@
 
     <div class="stat-card">
         <div class="stat-icon-wrapper stat-icon-blue">
-            <i class="fa-solid fa-briefcase"></i>
+            <i class="fa-solid fa-satellite-dish"></i>
         </div>
         <div>
             <div class="stat-val">{{ jobs|length }}</div>
-            <div class="stat-label">Recommended Jobs</div>
+            <div class="stat-label">Real-Time Openings</div>
         </div>
     </div>
 
@@ -67,7 +82,7 @@
         <select id="filter-location" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
             <option value="all">All Locations</option>
             <option value="remote">Remote Only</option>
-            <option value="onsite">On-site Only</option>
+            <option value="onsite">On-site / Specific Location</option>
         </select>
         
         <select id="filter-type" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
@@ -77,9 +92,11 @@
         </select>
 
         <select id="filter-source" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);">
-            <option value="all">All Sources (Live Web + Dataset)</option>
-            <option value="web">Live Web Scraped (RemoteOK & Remotive)</option>
-            <option value="dataset">Dataset Benchmark (ResumeAtlas)</option>
+            <option value="all">All Real-Time Sources</option>
+            <option value="remotive">Remotive Live</option>
+            <option value="arbeitnow">Arbeitnow Live</option>
+            <option value="remoteok">RemoteOK Live</option>
+            <option value="jobicy">Jobicy Live</option>
         </select>
 
         <select id="sort-select" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
@@ -89,12 +106,12 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-        <span class="badge-pill" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 0.78rem;">
-            <i class="fa-solid fa-satellite-dish" style="color: #2563eb;"></i> Live Web & Dataset Engine Active
+        <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.78rem;">
+            <i class="fa-solid fa-bolt" style="color: #10b981;"></i> Real-Time Job Search Active
         </span>
         <form method="GET" action="{{ url_for('jobs.results') }}" class="input-icon-group" style="width: 250px; margin: 0;">
             <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.85rem;"></i>
-            <input type="text" id="search-input" name="q" oninput="filterJobs()" class="input-control" placeholder="Search by title, skill, role..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
+            <input type="text" id="search-input" name="q" oninput="filterJobs()" class="input-control" placeholder="Search title, skill, role..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
         </form>
     </div>
 </div>
@@ -108,7 +125,7 @@
              style="padding: 1.25rem;"
              data-location="{{ (job.get('job_city') or job.get('location') or 'remote')|lower }}"
              data-type="{{ (job.get('job_employment_type') or 'full-time')|lower }}"
-             data-source="{{ (job.get('source_type') or ('web' if 'web' in job.get('source', '').lower() else 'dataset'))|lower }}"
+             data-source="{{ (job.get('source') or 'web')|lower }}"
              data-score="{{ job.get('combined_score', 0) }}"
              data-title="{{ job.get('job_title', '')|lower }}"
              data-company="{{ (job.get('employer_name') or job.get('company') or '')|lower }}"
@@ -120,7 +137,7 @@
                     </div>
                     <div style="flex: 1;">
                         <h3 class="job-title-clamped" style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem;">
-                            <a href="{{ url_for('jobs.job_detail', index=job.get('cache_id', loop.index0)) }}" style="text-decoration: none; color: inherit;">
+                            <a href="{{ url_for('jobs.job_detail', index=job.get('job_id', job.get('cache_id', loop.index0))) }}" style="text-decoration: none; color: inherit;">
                                 {{ job.get('job_title', 'Untitled Role') }}
                             </a>
                         </h3>
@@ -128,42 +145,92 @@
                             <strong>{{ job.get('employer_name') or job.get('company') or 'Company' }}</strong> • 
                             <span><i class="fa-solid fa-location-dot"></i> {{ job.get('job_city') or job.get('location') or 'Remote' }}</span> • 
                             <span><i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }}</span>
-                            {% if 'web' in (job.get('source_type', '')|lower) or 'web' in (job.get('source', '')|lower) %}
-                                <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.72rem; padding: 0.15rem 0.5rem;">
-                                    <i class="fa-solid fa-satellite-dish"></i> {{ job.get('source', 'Live Web') }}
-                                </span>
-                            {% else %}
-                                <span class="badge-pill" style="background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.72rem; padding: 0.15rem 0.5rem;">
-                                    <i class="fa-solid fa-database"></i> {{ job.get('source', 'Dataset') }}
-                                </span>
+                            <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.72rem; padding: 0.15rem 0.5rem;">
+                                <i class="fa-solid fa-bolt" style="color: #10b981;"></i> {{ job.get('source', 'Live') }}
+                            </span>
+                            {% if job.get('is_unrelated_domain') %}
+                            <span class="badge-pill" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.72rem; padding: 0.15rem 0.5rem;" title="{{ job.get('domain_info', {}).get('domain_explanation', '') }}">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Unrelated Category
+                            </span>
+                            {% elif job.get('domain_info') and job.get('domain_info', {}).get('is_tech') %}
+                            <span class="badge-pill" style="background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; font-size: 0.72rem; padding: 0.15rem 0.5rem;">
+                                <i class="fa-solid fa-tag"></i> {{ job.domain_info.domain_name }}
+                            </span>
+                            {% endif %}
+                            {% if job.get('is_internship') %}
+                            <span class="badge-pill" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.72rem; padding: 0.15rem 0.55rem; font-weight: 700;">
+                                <i class="fa-solid fa-graduation-cap"></i> Internship
+                            </span>
+                            {% elif job.get('is_entry_level') %}
+                            <span class="badge-pill" style="background: #fefce8; color: #854d0e; border: 1px solid #fef08a; font-size: 0.72rem; padding: 0.15rem 0.55rem; font-weight: 600;">
+                                <i class="fa-solid fa-seedling"></i> Entry Level
+                            </span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <span class="badge-pill {% if job.get('combined_score', 0) >= 70 %}badge-match-high{% elif job.get('combined_score', 0) >= 45 %}badge-match-med{% else %}badge-match-low{% endif %}" style="margin-left: 0.5rem;">
-                    {{ job.get('combined_score', 0) }}% Match
-                </span>
+                <div style="text-align: right; margin-left: 0.5rem; flex-shrink: 0;">
+                    <span class="badge-pill {% if job.get('combined_score', 0) >= 70 %}badge-match-high{% elif job.get('combined_score', 0) >= 45 %}badge-match-med{% else %}badge-match-low{% endif %}">
+                        {{ job.get('combined_score', 0) }}% Match
+                    </span>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+                        Coverage {{ job.score_breakdown.skill_coverage_pct if job.score_breakdown else job.match_score }}% • Semantic {{ job.score_breakdown.semantic_score_pct if job.score_breakdown else job.cosine_score }}%
+                    </div>
+                </div>
             </div>
 
-            <!-- Matched & Missing Skills -->
-            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.75rem; margin-bottom: 1rem;">
-                {% for skill in job.get('matched_skills', [])[:3] %}
-                    <span class="badge-pill badge-skill-extracted">{{ skill }}</span>
-                {% endfor %}
-                {% for skill in job.get('missing_skills', [])[:3] %}
-                    <span class="badge-pill badge-skill-missing">Missing: {{ skill }}</span>
-                {% endfor %}
+            <!-- 3-Tier Job Skills Breakdown: Matched (1.0), Partially Matched (0.5), Missing (0.0) -->
+            <div style="margin-top: 0.75rem; margin-bottom: 0.85rem;">
+                <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
+                    <!-- Matched Skills (Green) -->
+                    {% for skill in job.get('matched_skills', [])[:3] %}
+                        <span class="badge-pill badge-skill-extracted" title="Directly verified from your resume">
+                            <i class="fa-solid fa-check" style="font-size: 0.7rem;"></i> {{ skill }}
+                        </span>
+                    {% endfor %}
+
+                    <!-- Partially Matched Skills (Amber) -->
+                    {% for p in job.get('partial_skills', [])[:2] %}
+                        <span class="badge-pill" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 0.72rem; padding: 0.2rem 0.5rem;" title="{{ p.reason }}">
+                            <i class="fa-solid fa-arrows-split-up-and-left" style="font-size: 0.68rem;"></i> ≈ {{ p.skill }} (via {{ p.matched_via }})
+                        </span>
+                    {% endfor %}
+
+                    <!-- Missing Skills (Red) -->
+                    {% for skill in job.get('missing_skills', [])[:3] %}
+                        <span class="badge-pill badge-skill-missing" title="Required by this live role, not found in resume">
+                            <i class="fa-solid fa-xmark" style="font-size: 0.68rem;"></i> {{ skill }}
+                        </span>
+                    {% endfor %}
+                    
+                    {% set total_extra = (job.get('matched_skills', [])|length - 3) + (job.get('partial_skills', [])|length - 2) + (job.get('missing_skills', [])|length - 3) %}
+                    {% if total_extra > 0 %}
+                        <span style="font-size: 0.72rem; color: var(--text-light); font-weight: 600;">+{{ total_extra }} more</span>
+                    {% endif %}
+                </div>
             </div>
+
+            <!-- Transparent Math Formula Strip -->
+            {% if job.score_breakdown %}
+            <div style="font-size: 0.75rem; color: var(--text-muted); background: var(--bg-subtle); padding: 0.45rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;">
+                <div>
+                    <i class="fa-solid fa-calculator" style="color: var(--primary); margin-right: 0.25rem;"></i>
+                    <strong>Why {{ job.combined_score }}%?</strong> Skills (35%): {{ job.score_breakdown.skill_coverage_pts }} pts • Quals (15%): {{ job.score_breakdown.qualifications_pts or job.score_breakdown.education_pts }} pts • Exp (15%): {{ job.score_breakdown.experience_pts }} pts • Projects (15%): {{ job.score_breakdown.projects_pts or 0 }} pts • Tasks (10%): {{ job.score_breakdown.responsibilities_pts or job.score_breakdown.semantic_pts }} pts • Career (10%): {{ job.score_breakdown.title_pts }} pts
+                </div>
+                <span style="color: var(--primary); font-weight: 600;">{{ job.matched_skills|length }} matched • {{ job.partial_skills|length }} partial • {{ job.missing_skills|length }} missing</span>
+            </div>
+            {% endif %}
 
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-                <a href="{{ url_for('jobs.job_detail', index=job.get('cache_id', loop.index0)) }}" class="btn btn-outline btn-sm">
+                <a href="{{ url_for('jobs.job_detail', index=job.get('job_id', job.get('cache_id', loop.index0))) }}" class="btn btn-outline btn-sm">
                     View Details
                 </a>
                 
                 <div style="display: flex; gap: 0.5rem;">
                     <form method="POST" action="{{ url_for('jobs.save_job') }}" style="display: inline;">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="job_id" value="{{ job.get('job_id', '') }}">
                         <input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
                         <input type="hidden" name="company" value="{{ job.get('employer_name') or job.get('company', '') }}">
                         <input type="hidden" name="location" value="{{ job.get('job_city') or job.get('location', 'Remote') }}">
@@ -171,8 +238,10 @@
                         <input type="hidden" name="match_score" value="{{ job.get('combined_score', 80) }}">
                         <button type="submit" class="btn btn-secondary btn-sm" title="Save Job"><i class="fa-regular fa-bookmark"></i></button>
                     </form>
-                    <a href="{{ job.get('job_apply_link', '#') }}" target="_blank" class="btn btn-primary btn-sm btn-pill">
-                        Apply Now
+
+                    <!-- Direct Apply Now Link -->
+                    <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', job.get('cache_id', loop.index0))) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm btn-pill" title="Apply on {{ job.get('source', 'Original Portal') }}">
+                        Apply Now <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem; margin-left: 0.2rem;"></i>
                     </a>
                 </div>
             </div>
@@ -180,8 +249,8 @@
         {% else %}
         <div class="card-panel" style="text-align: center; padding: 4rem 2rem;">
             <i class="fa-solid fa-magnifying-glass" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
-            <h3>No jobs found</h3>
-            <p style="color: var(--text-muted);">Try adjusting your role preferences.</p>
+            <h3>No live jobs found</h3>
+            <p style="color: var(--text-muted);">Try adjusting your role or location keywords.</p>
         </div>
         {% endfor %}
 
@@ -216,11 +285,13 @@
         </div>
 
         <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem;">
-            <a href="{{ active_job.get('job_apply_link', '#') }}" target="_blank" class="btn btn-primary btn-sm" style="flex: 1;">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply Now
+            <!-- Direct Apply Now in Sidebar -->
+            <a href="{{ url_for('jobs.apply_redirect', index=active_job.get('job_id', active_job.get('cache_id', 0))) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="flex: 1;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply Now ({{ active_job.get('source', 'Original Site') }})
             </a>
             <form method="POST" action="{{ url_for('jobs.save_job') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="job_id" value="{{ active_job.get('job_id', '') }}">
                 <input type="hidden" name="job_title" value="{{ active_job.get('job_title', '') }}">
                 <input type="hidden" name="company" value="{{ active_job.get('employer_name') or active_job.get('company', '') }}">
                 <input type="hidden" name="location" value="{{ active_job.get('job_city') or active_job.get('location', 'Remote') }}">
@@ -236,40 +307,108 @@
         <div style="font-size: 0.85rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
             <div><strong style="color: var(--text-main);">Type:</strong> {{ active_job.get('job_employment_type', 'Full-time') }}</div>
             <div><strong style="color: var(--text-main);">Location:</strong> {{ active_job.get('job_city') or active_job.get('location') or 'Remote' }}</div>
-            <div><strong style="color: var(--text-main);">Match Score:</strong> {{ active_job.get('combined_score', 80) }}%</div>
+            <div><strong style="color: var(--text-main);">Source:</strong> {{ active_job.get('source', 'Live Web') }}</div>
             <div><strong style="color: var(--text-main);">Total Skills:</strong> {{ (active_job.get('job_skills', []))|length }}</div>
         </div>
 
-        <!-- Matched & Missing -->
+        <!-- Transparent Match Explanation Card -->
+        {% if active_job.score_breakdown %}
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem; display: flex; align-items: center; justify-content: space-between;">
+                <span><i class="fa-solid fa-calculator" style="color: var(--primary);"></i> Why is this match {{ active_job.combined_score }}%?</span>
+                <span style="color: var(--primary); font-weight: 700;">{{ active_job.combined_score }}% Total</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem; margin-bottom: 0.65rem;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.4rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted);">Skill (35%)</div>
+                    <div style="font-size: 0.88rem; font-weight: 800; color: #047857;">{{ active_job.score_breakdown.skill_coverage_pct }}%</div>
+                    <div style="font-size: 0.65rem; color: var(--text-light);">{{ active_job.score_breakdown.skill_coverage_pts }} pts</div>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.4rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted);">Semantic (25%)</div>
+                    <div style="font-size: 0.88rem; font-weight: 800; color: #2563eb;">{{ active_job.score_breakdown.semantic_score_pct }}%</div>
+                    <div style="font-size: 0.65rem; color: var(--text-light);">{{ active_job.score_breakdown.semantic_pts }} pts</div>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.4rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted);">Title (20%)</div>
+                    <div style="font-size: 0.88rem; font-weight: 800; color: #7c3aed;">{{ active_job.score_breakdown.title_score_pct }}%</div>
+                    <div style="font-size: 0.65rem; color: var(--text-light);">{{ active_job.score_breakdown.title_pts }} pts</div>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.4rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted);">Exp (10%)</div>
+                    <div style="font-size: 0.88rem; font-weight: 800; color: #ea580c;">{{ active_job.score_breakdown.experience_score_pct }}%</div>
+                    <div style="font-size: 0.65rem; color: var(--text-light);">{{ active_job.score_breakdown.experience_pts }} pts</div>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.4rem 0.2rem; text-align: center;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted);">Edu (10%)</div>
+                    <div style="font-size: 0.88rem; font-weight: 800; color: #0891b2;">{{ active_job.score_breakdown.education_score_pct }}%</div>
+                    <div style="font-size: 0.65rem; color: var(--text-light);">{{ active_job.score_breakdown.education_pts }} pts</div>
+                </div>
+            </div>
+            <div style="font-size: 0.74rem; color: var(--text-muted); line-height: 1.35;">
+                {{ active_job.score_explanation }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 3-Tier Skills Breakdown -->
         <div style="margin-bottom: 1.25rem;">
-            <div style="font-weight: 700; font-size: 0.82rem; color: var(--text-main); margin-bottom: 0.4rem;">Matched Skills</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.85rem;">
+            <!-- Matched Skills -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">
+                    <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Matched Skills ({{ active_job.get('matched_skills', [])|length }})
+                </span>
+                <span style="font-size: 0.7rem; color: #047857; font-weight: 600;">100% weight</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.75rem;">
                 {% for s in active_job.get('matched_skills', []) %}
-                    <span class="badge-pill badge-skill-extracted">{{ s }}</span>
+                    <span class="badge-pill badge-skill-extracted" style="font-size: 0.75rem;">{{ s }}</span>
                 {% else %}
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">None yet</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">No exact skill overlap</span>
                 {% endfor %}
             </div>
 
-            <div style="font-weight: 700; font-size: 0.82rem; color: var(--text-main); margin-bottom: 0.4rem;">Missing Skills</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
-                {% for s in active_job.get('missing_skills', [])[:4] %}
-                    <span class="badge-pill badge-skill-missing">{{ s }}</span>
+            <!-- Partially Matched Skills -->
+            {% if active_job.get('partial_skills') %}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">
+                    <i class="fa-solid fa-arrows-split-up-and-left" style="color: #f59e0b;"></i> Partially Matched ({{ active_job.get('partial_skills', [])|length }})
+                </span>
+                <span style="font-size: 0.7rem; color: #b45309; font-weight: 600;">50% weight</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.75rem;">
+                {% for p in active_job.get('partial_skills', []) %}
+                    <span class="badge-pill" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 0.72rem; padding: 0.2rem 0.5rem;" title="{{ p.reason }}">
+                        ≈ {{ p.skill }} <span style="font-size: 0.65rem; color: #b45309;">(via {{ p.matched_via }})</span>
+                    </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Missing Skills -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">
+                    <i class="fa-solid fa-circle-xmark" style="color: #ef4444;"></i> Missing Skills ({{ active_job.get('missing_skills', [])|length }})
+                </span>
+                <span style="font-size: 0.7rem; color: #b91c1c; font-weight: 600;">0% weight</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                {% for s in active_job.get('missing_skills', []) %}
+                    <span class="badge-pill badge-skill-missing" style="font-size: 0.75rem;">{{ s }}</span>
                 {% else %}
-                    <span class="badge-pill badge-match-high">All skills covered</span>
+                    <span class="badge-pill badge-match-high" style="font-size: 0.75rem;">All required skills present!</span>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Skill Gap Analysis Box -->
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 1rem;">
-            <div style="font-size: 0.85rem; font-weight: 700; color: #1e40af; margin-bottom: 0.35rem;">
-                <i class="fa-solid fa-lightbulb"></i> Match Details
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #1e40af; margin-bottom: 0.25rem;">
+                <i class="fa-solid fa-graduation-cap"></i> Skill Gap & Learning Available
             </div>
-            <p style="font-size: 0.8rem; color: #1e3a8a; margin-bottom: 0.75rem;">
+            <p style="font-size: 0.75rem; color: #1e3a8a; margin: 0 0 0.5rem 0; line-height: 1.4;">
                 Click below to see the full description, responsibilities, and recommended learning resources.
             </p>
-            <a href="{{ url_for('jobs.job_detail', index=0) }}" class="btn btn-outline btn-sm" style="font-size: 0.78rem; width: 100%;">
+            <a href="{{ url_for('jobs.job_detail', index=active_job.get('job_id', active_job.get('cache_id', 0))) }}" class="btn btn-outline btn-sm" style="font-size: 0.78rem; width: 100%;">
                 Full Breakdown & Learning <i class="fa-solid fa-arrow-right"></i>
             </a>
         </div>
@@ -299,7 +438,7 @@ function filterJobs() {
 
         let matchLoc = (locFilter === 'all') || (locFilter === 'remote' && loc.includes('remote')) || (locFilter === 'onsite' && !loc.includes('remote'));
         let matchType = (typeFilter === 'all') || type.includes(typeFilter);
-        let matchSource = (sourceFilter === 'all') || (sourceFilter === 'web' && src.includes('web')) || (sourceFilter === 'dataset' && src.includes('dataset'));
+        let matchSource = (sourceFilter === 'all') || src.includes(sourceFilter);
         let matchSearch = !searchVal || title.includes(searchVal) || company.includes(searchVal) || skills.includes(searchVal);
 
         if (matchLoc && matchType && matchSource && matchSearch) {

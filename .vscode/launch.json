@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "▶ Run JobSnap (One-Click Start)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/start_app.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "JobSnap GUI Launcher",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/launcher.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Flask Direct (run.py)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run.py",
+            "console": "integratedTerminal",
+            "env": {
+                "FLASK_ENV": "development",
+                "PORT": "5000"
+            }
+        }
+    ]
+}
+

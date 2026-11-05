@@ -177,6 +177,13 @@
                         <div style="font-size: 0.8rem; color: var(--text-muted);">
                             Completeness Score: <strong style="color: var(--success);">{{ resume.completeness_score }}%</strong>
                         </div>
+                        {% if candidate_profile %}
+                        <div style="margin-top: 0.35rem;">
+                            <span class="badge-pill" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem;">
+                                <i class="fa-solid fa-user-tie"></i> {{ candidate_profile.domain_name }}: {{ candidate_profile.recommended_role }}
+                            </span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -213,7 +220,12 @@
 
             <!-- Extracted & Missing Badges -->
             <div style="margin-bottom: 1.25rem;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.5rem;">Extracted Skills ({{ resume.skills|length }})</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">Extracted Skills ({{ resume.skills|length }})</div>
+                    <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.68rem; padding: 0.1rem 0.4rem;">
+                        <i class="fa-solid fa-circle-check"></i> Verified from CV
+                    </span>
+                </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
                     {% for skill in resume.skills[:12] %}
                         <span class="badge-pill badge-skill-extracted">{{ skill }}</span>
@@ -284,14 +296,17 @@
                                     <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
                                         <span>{{ job.employer_name or job.company or 'Company' }}</span> • 
                                         <span><i class="fa-solid fa-location-dot"></i> {{ job.job_city or job.location or 'Remote' }}</span>
-                                        {% if 'web' in (job.get('source_type', '')|lower) or 'web' in (job.get('source', '')|lower) %}
-                                            <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.68rem; padding: 0.1rem 0.4rem;">
-                                                <i class="fa-solid fa-satellite-dish"></i> Live Web
-                                            </span>
-                                        {% else %}
-                                            <span class="badge-pill" style="background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.68rem; padding: 0.1rem 0.4rem;">
-                                                <i class="fa-solid fa-database"></i> Dataset
-                                            </span>
+                                        <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.68rem; padding: 0.1rem 0.4rem;">
+                                            <i class="fa-solid fa-bolt" style="color: #10b981;"></i> {{ job.get('source', 'Live') }}
+                                        </span>
+                                        {% if job.get('is_internship') %}
+                                        <span class="badge-pill" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.68rem; padding: 0.1rem 0.45rem; font-weight: 700;">
+                                            <i class="fa-solid fa-graduation-cap"></i> Internship
+                                        </span>
+                                        {% elif job.get('is_entry_level') %}
+                                        <span class="badge-pill" style="background: #fefce8; color: #854d0e; border: 1px solid #fef08a; font-size: 0.68rem; padding: 0.1rem 0.45rem; font-weight: 600;">
+                                            <i class="fa-solid fa-seedling"></i> Entry Level
+                                        </span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -308,7 +323,12 @@
                                     <span class="badge-pill badge-skill-extracted">Tech</span>
                                 {% endfor %}
                             </div>
-                            <a href="{{ url_for('jobs.job_detail', index=job.cache_id) }}" class="btn btn-outline btn-sm">View Details</a>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <a href="{{ url_for('jobs.job_detail', index=job.get('job_id', job.cache_id)) }}" class="btn btn-outline btn-sm">View Details</a>
+                                <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', job.cache_id)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm btn-pill" title="Apply on {{ job.get('source', 'Original Portal') }}">
+                                    Apply Now <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.68rem; margin-left: 0.2rem;"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -355,9 +375,12 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
             {% for item in skill_gap_summary %}
                 <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.35rem;">
                         <span>{{ loop.index }}. {{ item.skill }}</span>
                         <span style="color: {{ item.color }}; font-size: 0.75rem;">{{ item.level }}</span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.45rem;">
+                        Found in <strong>{{ item.count }} of {{ item.total }}</strong> top live openings
                     </div>
                     <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
                         <div style="width: {{ item.demand }}%; height: 100%; background: {{ item.color }}; border-radius: 3px;"></div>

@@ -1,12 +1,27 @@
 import os
 import pathlib
+import sys
 
-# ── ensure models/ exists so train_ner.py can write there ──────────────────────
+# ── ensure required directories exist ──────────────────────────────────────────
 pathlib.Path("models").mkdir(exist_ok=True)
+pathlib.Path("uploads").mkdir(exist_ok=True)
+pathlib.Path("instance").mkdir(exist_ok=True)
 
 from app import create_app
 
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    # Support dynamic PORT and HOST to prevent port collisions
+    port = int(os.environ.get("PORT", 5000))
+    host = os.environ.get("HOST", "127.0.0.1")
+
+    # Command-line override: python run.py --port 5001
+    for i, arg in enumerate(sys.argv):
+        if arg == "--port" and i + 1 < len(sys.argv):
+            port = int(sys.argv[i + 1])
+        elif arg == "--host" and i + 1 < len(sys.argv):
+            host = sys.argv[i + 1]
+
+    print(f"[*] Starting JobSnap server on http://{host}:{port}")
+    app.run(host=host, port=port, debug=False)

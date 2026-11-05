@@ -90,14 +90,24 @@
 
         <!-- Extracted Skills -->
         <div class="card-panel">
-            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem;">
-                <i class="fa-solid fa-list-check" style="color: var(--success);"></i> Extracted Skills
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin: 0;">
+                    <i class="fa-solid fa-list-check" style="color: var(--success); margin-right: 0.35rem;"></i> Verified Extracted Skills
+                </h3>
+                <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.75rem; font-weight: 600;">
+                    <i class="fa-solid fa-circle-check"></i> Strictly Verified from CV ({{ resume.skills|length }})
+                </span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.4;">
+                All skills below were extracted strictly from the explicit text and skills sections of your uploaded CV. No assumed, hallucinated, or unmentioned skills (such as Computer Vision) are generated.
+            </p>
             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                 {% for skill in resume.skills %}
-                    <span class="badge-pill badge-skill-extracted" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">{{ skill }}</span>
+                    <span class="badge-pill badge-skill-extracted" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+                        <i class="fa-solid fa-check" style="font-size: 0.72rem; margin-right: 0.25rem;"></i> {{ skill }}
+                    </span>
                 {% else %}
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">No skills identified.</p>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">No skills identified in the uploaded CV.</p>
                 {% endfor %}
             </div>
         </div>
@@ -200,27 +210,47 @@
         </div>
 
         <div class="card-panel">
-            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem;">
-                <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Skill Gap Recommendations
-            </h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-                Priority skills to acquire to improve your resume match score for your target roles:
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin: 0;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning); margin-right: 0.35rem;"></i> Skill Gap Recommendations
+                </h3>
+                <span class="badge-pill" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 0.72rem; padding: 0.15rem 0.5rem;">
+                    <i class="fa-solid fa-bolt" style="color: #3b82f6;"></i> Live Job Market Data
+                </span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.15rem; line-height: 1.4;">
+                Priority skills to acquire based on frequency across <strong>{{ live_job_count }}</strong> live postings for <strong>{{ target_role }}</strong>:
             </p>
 
             <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                 {% for item in skill_gap_recommendations %}
                 <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                        <strong style="font-size: 0.9rem; color: var(--text-main);">{{ item.skill }}</strong>
-                        <span class="badge-pill {% if item.priority == 'High' %}badge-match-low{% else %}badge-match-med{% endif %}">
-                            {{ item.priority }} Priority
+                        <strong style="font-size: 0.92rem; color: var(--text-main);">{{ item.skill }}</strong>
+                        <span class="badge-pill {% if item.priority == 'High' %}badge-match-low{% else %}badge-match-med{% endif %}" style="font-size: 0.72rem;">
+                            {{ item.priority }} Priority ({{ item.demand }}% Demand)
                         </span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Demanded in <strong>{{ item.count }} of {{ item.total_jobs }}</strong> active job listings</span>
+                        <a href="{{ url_for('jobs.results') }}?q={{ item.skill }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                            Find Jobs <i class="fa-solid fa-arrow-right" style="font-size: 0.68rem;"></i>
+                        </a>
                     </div>
                     <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
                         <div style="width: {{ item.demand }}%; height: 100%; background: {% if item.priority == 'High' %}#ef4444{% else %}#f59e0b{% endif %}; border-radius: 3px;"></div>
                     </div>
                 </div>
+                {% else %}
+                <div style="font-size: 0.85rem; color: var(--text-muted); padding: 0.5rem 0;">
+                    No skill gaps found for this role! Your profile covers the core market demands.
+                </div>
                 {% endfor %}
+            </div>
+
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.95rem; border-top: 1px dashed var(--border-color); padding-top: 0.65rem; line-height: 1.4;">
+                <i class="fa-solid fa-circle-info" style="color: var(--primary); margin-right: 0.25rem;"></i>
+                Adding or learning these verified missing skills will directly raise your match score across live <strong>{{ target_role }}</strong> openings.
             </div>
         </div>
 

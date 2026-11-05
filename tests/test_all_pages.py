@@ -19,6 +19,17 @@ class TestResumeAIPages(unittest.TestCase):
             db.session.add(user)
             db.session.commit()
 
+            resume = Resume(
+                user_id=user.id,
+                filename="test_resume.pdf",
+                extracted_skills='["Python", "SQL", "Flask"]',
+                extracted_text="Experienced Python, SQL, and Flask developer.",
+            )
+            db.session.add(resume)
+            pref = JobPreference(user_id=user.id, target_role="Python Developer", location="Remote")
+            db.session.add(pref)
+            db.session.commit()
+
     def test_public_pages(self):
         # 1. Landing Page
         res = self.client.get("/")

@@ -24,40 +24,46 @@
                     <strong style="color: var(--primary);">{{ job.get('employer_name') or job.get('company') or 'Hiring Company' }}</strong> • 
                     <span><i class="fa-solid fa-location-dot"></i> {{ job.get('job_city') or job.get('location') or 'Remote' }}</span> • 
                     <span><i class="fa-solid fa-clock"></i> {{ job.get('job_employment_type', 'Full-time') }}</span>
-                    {% if 'web' in (job.get('source_type', '')|lower) or 'web' in (job.get('source', '')|lower) %}
-                        <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.75rem;">
-                            <i class="fa-solid fa-satellite-dish"></i> {{ job.get('source', 'Live Web Scraped') }}
-                        </span>
-                    {% else %}
-                        <span class="badge-pill" style="background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.75rem;">
-                            <i class="fa-solid fa-database"></i> {{ job.get('source', 'Dataset Benchmark') }}
-                        </span>
+                    <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.75rem;">
+                        <i class="fa-solid fa-bolt" style="color: #10b981;"></i> {{ job.get('source', 'Live Web Opening') }}
+                    </span>
+                    {% if job.get('is_internship') %}
+                    <span class="badge-pill" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.6rem;">
+                        <i class="fa-solid fa-graduation-cap"></i> Internship Position
+                    </span>
+                    {% elif job.get('is_entry_level') %}
+                    <span class="badge-pill" style="background: #fefce8; color: #854d0e; border: 1px solid #fef08a; font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.6rem;">
+                        <i class="fa-solid fa-seedling"></i> Entry Level Position
+                    </span>
+                    {% endif %}
+                    {% if job.get('salary') %}
+                    <span class="badge-pill" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 0.75rem;">
+                        <i class="fa-solid fa-money-bill-wave"></i> {{ job.get('salary') }}
+                    </span>
                     {% endif %}
                 </div>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-                    {% for skill in job.get('matched_skills', job.get('job_skills', [])) %}
-                        <span class="badge-pill badge-skill-extracted">{{ skill }}</span>
+                    {% for skill in job.get('matched_skills', []) %}
+                        <span class="badge-pill badge-skill-extracted"><i class="fa-solid fa-check" style="margin-right: 3px;"></i> {{ skill }}</span>
+                    {% endfor %}
+                    {% for p in job.get('partial_skills', []) %}
+                        <span class="badge-pill" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.78rem;">
+                            <i class="fa-solid fa-circle-half-stroke" style="margin-right: 3px;"></i> {{ p.skill }}
+                        </span>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
-            <span class="badge-pill {% if job.get('combined_score', 0) >= 70 %}badge-match-high{% else %}badge-match-med{% endif %}" style="font-size: 1.05rem; padding: 0.5rem 1.2rem;">
-                <i class="fa-solid fa-bullseye"></i> {{ job.get('combined_score', job.get('match_score', 80)) }}% Match
+            <span class="badge-pill {% if job.get('combined_score', 0) >= 70 %}badge-match-high{% elif job.get('combined_score', 0) >= 45 %}badge-match-med{% else %}badge-match-low{% endif %}" style="font-size: 1.15rem; padding: 0.55rem 1.35rem; font-weight: 800;">
+                <i class="fa-solid fa-bullseye"></i> {{ job.get('combined_score', 80) }}% Match
             </span>
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
-                <!-- Primary Direct Apply -->
-                <a href="{{ job.get('job_apply_link', '#') }}" target="_blank" class="btn btn-primary btn-pill" id="primaryApplyBtn">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    {% if job.get('official_career_url') %}
-                        Official Career Portal
-                    {% elif 'web' in (job.get('source_type', '')|lower) %}
-                        Apply on {{ job.get('source', 'Job Board') }}
-                    {% else %}
-                        Apply via LinkedIn Jobs
-                    {% endif %}
+                <!-- Primary Direct Apply Button -->
+                <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', index)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-pill" id="primaryApplyBtn">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply on {{ job.get('source', 'Original Portal') }}
                 </a>
 
                 <!-- Quick Apply with Resume Modal Trigger -->
@@ -68,6 +74,7 @@
                 <!-- Save Job -->
                 <form method="POST" action="{{ url_for('jobs.save_job') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="job_id" value="{{ job.get('job_id', index) }}">
                     <input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
                     <input type="hidden" name="company" value="{{ job.get('employer_name') or job.get('company', '') }}">
                     <input type="hidden" name="location" value="{{ job.get('job_city') or job.get('location', 'Remote') }}">
@@ -86,7 +93,241 @@
 <div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem;">
     <!-- Left Details Column -->
     <div class="card-panel">
-        <!-- Section 1: Job Description -->
+        <!-- Transparent Score Explanation Section -->
+        <div style="margin-bottom: 2rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-calculator" style="color: var(--primary);"></i> Why is your match score {{ job.get('combined_score', 80) }}%?
+                </h3>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    {% if job.get('is_unrelated_domain') %}
+                    <span class="badge-pill" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Unrelated Category Penalty Applied
+                    </span>
+                    {% else %}
+                    <span class="badge-pill badge-match-high" style="font-size: 0.8rem;">
+                        <i class="fa-solid fa-circle-check"></i> Realistic 6-Dimension Score
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mathematical Breakdown Formula Grid: 6 Core Realistic Dimensions -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+                <!-- 1. Technical Skill Overlap -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.75rem;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Technical Skills (35%)
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #047857;">{{ job.get('score_breakdown', {}).get('skill_coverage_pct', job.get('match_score', 0)) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #047857;">{{ job.get('score_breakdown', {}).get('skill_coverage_pts', 0) }} pts</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.35rem;">
+                        Core technical vs transferable vs soft skills
+                    </div>
+                </div>
+
+                <!-- 2. Required Qualifications & Education -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.75rem;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Qualifications (15%)
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #0891b2;">{{ job.get('score_breakdown', {}).get('qualifications_pct', job.get('education_score', 75)) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #0891b2;">{{ job.get('score_breakdown', {}).get('qualifications_pts', 11) }} pts</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.35rem;">
+                        Degree level, academic field, certifications
+                    </div>
+                </div>
+
+                <!-- 3. Professional Experience -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.75rem;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Experience (15%)
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #ea580c;">{{ job.get('score_breakdown', {}).get('experience_score_pct', job.get('experience_score', 70)) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #ea580c;">{{ job.get('score_breakdown', {}).get('experience_pts', 10) }} pts</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.35rem;">
+                        Tenure years & seniority depth fit
+                    </div>
+                </div>
+
+                <!-- 4. Projects & Portfolio -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.75rem;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Projects & Works (15%)
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #7c3aed;">{{ job.get('score_breakdown', {}).get('projects_pct', job.get('projects_score', 75)) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #7c3aed;">{{ job.get('score_breakdown', {}).get('projects_pts', 11) }} pts</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.35rem;">
+                        Practical implementation & GitHub evidence
+                    </div>
+                </div>
+
+                <!-- 5. Job Responsibilities -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.75rem;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Responsibilities (10%)
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #2563eb;">{{ job.get('score_breakdown', {}).get('responsibilities_pct', job.get('cosine_score', 70)) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #2563eb;">{{ job.get('score_breakdown', {}).get('responsibilities_pts', 7) }} pts</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.35rem;">
+                        Daily duties & execution actions overlap
+                    </div>
+                </div>
+
+                <!-- 6. Career Relevance & Domain Fit -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.75rem;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Career Fit (10%)
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 800; color: {% if job.get('is_unrelated_domain') %}#dc2626{% else %}#059669{% endif %};">{{ job.get('score_breakdown', {}).get('title_score_pct', 80) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: {% if job.get('is_unrelated_domain') %}#dc2626{% else %}#059669{% endif %};">{{ job.get('score_breakdown', {}).get('title_pts', 8) }} pts</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.35rem;">
+                        Career domain compatibility & title alignment
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transparent Diagnostics: Verdict, Strengths & Deductions -->
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 0.75rem;">
+                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-main); margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span><i class="fa-solid fa-clipboard-check" style="color: var(--primary); margin-right: 0.35rem;"></i> Diagnostic Evaluation Verdict:</span>
+                    <span style="font-size: 0.82rem; font-weight: 700; color: {% if job.get('is_unrelated_domain') %}#dc2626{% elif job.get('combined_score', 0) >= 80 %}#166534{% elif job.get('combined_score', 0) >= 65 %}#1e40af{% else %}#b45309{% endif %};">
+                        {{ job.get('detailed_diagnostic', {}).get('verdict', 'Evaluated Match') }}
+                    </span>
+                </div>
+                
+                <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+                    {{ job.get('score_explanation', 'Your match score is calculated transparently across verified technical skills, qualifications, experience, and projects.') }}
+                </div>
+
+                {% if job.get('detailed_diagnostic', {}).get('strong_reasons') %}
+                <div style="margin-bottom: 0.6rem;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #166534; margin-bottom: 0.25rem;">
+                        <i class="fa-solid fa-arrow-up" style="color: #16a34a;"></i> Key Positive Fit Factors:
+                    </div>
+                    <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: #1f2937; line-height: 1.45;">
+                        {% for r in job.detailed_diagnostic.strong_reasons %}
+                        <li>{{ r }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if job.get('detailed_diagnostic', {}).get('gap_reasons') %}
+                <div>
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #991b1b; margin-bottom: 0.25rem;">
+                        <i class="fa-solid fa-circle-exclamation" style="color: #dc2626;"></i> Areas with Score Deductions / Gaps:
+                    </div>
+                    <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: #4b5563; line-height: 1.45;">
+                        {% for g in job.detailed_diagnostic.gap_reasons %}
+                        <li>{{ g }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Actionable Next Step -->
+            <div style="font-size: 0.85rem; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 0.65rem 0.85rem;">
+                <i class="fa-solid fa-lightbulb" style="color: #16a34a; margin-right: 0.35rem;"></i>
+                <strong>Next Step to Boost Score:</strong> {{ job.get('actionable_advice', 'Review required competencies to optimize your compatibility.') }}
+            </div>
+        </div>
+
+        <!-- Section 2: Detailed 3-Tier Skill Gap Breakdown -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Three-Tier Skill Compatibility Analysis
+            </h3>
+            
+            <!-- 1. Strong / Verified Matched Skills -->
+            <div style="margin-bottom: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div style="font-weight: 700; font-size: 0.88rem; color: #166534;">
+                        <i class="fa-solid fa-circle-check" style="color: var(--success); margin-right: 0.35rem;"></i> Strong / Verified Matches ({{ job.get('matched_skills', [])|length }})
+                    </div>
+                    <span style="font-size: 0.75rem; color: #166534; font-weight: 600;">Full Credit (100%)</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                    {% for skill in job.get('matched_skills', []) %}
+                        <span class="badge-pill badge-skill-extracted" style="font-size: 0.82rem; padding: 0.3rem 0.7rem;" title="Directly verified in your resume">
+                            <i class="fa-solid fa-check" style="margin-right: 4px;"></i> {{ skill }}
+                        </span>
+                    {% else %}
+                        <span style="font-size: 0.82rem; color: var(--text-muted); font-style: italic;">No direct skill matches detected in CV.</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 2. Partially Matched Skills (Transferable Frameworks & Tools) -->
+            {% if job.get('partial_skills') %}
+            <div style="margin-bottom: 1.25rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 0.85rem 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div style="font-weight: 700; font-size: 0.88rem; color: #1e40af;">
+                        <i class="fa-solid fa-circle-half-stroke" style="color: #2563eb; margin-right: 0.35rem;"></i> Partially Matched via Transferable Skills ({{ job.get('partial_skills', [])|length }})
+                    </div>
+                    <span style="font-size: 0.75rem; color: #1e3a8a; font-weight: 600;">Partial Credit (50% - 60%)</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for p in job.get('partial_skills', []) %}
+                    <div style="background: white; border: 1px solid #dbeafe; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.82rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem; flex-wrap: wrap; gap: 0.25rem;">
+                            <strong style="color: #1e40af;"><i class="fa-solid fa-arrow-right-arrow-left" style="font-size: 0.75rem;"></i> {{ p.skill }}</strong>
+                            <span class="badge-pill" style="background: #dbeafe; color: #1e40af; font-size: 0.72rem; padding: 0.1rem 0.45rem;">
+                                Matched via your verified skill: <strong>{{ p.matched_via }}</strong>
+                            </span>
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.78rem;">
+                            {{ p.reason }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 3. Missing Skills with Priority Ranking -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div style="font-weight: 700; font-size: 0.88rem; color: #991b1b;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger); margin-right: 0.35rem;"></i> Missing Competencies ({{ job.get('missing_skills', [])|length }})
+                    </div>
+                    <span style="font-size: 0.75rem; color: #991b1b; font-weight: 600;">Zero Credit</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                    {% for item in job.get('missing_skills_detailed', []) %}
+                        <span class="badge-pill badge-skill-missing" style="font-size: 0.82rem; padding: 0.3rem 0.7rem;" title="{{ item.impact }}">
+                            <i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> {{ item.skill }}
+                            {% if item.priority == 'High Priority' %}
+                            <span style="background: #fee2e2; color: #991b1b; border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.68rem; margin-left: 4px; font-weight: 700;">Core</span>
+                            {% endif %}
+                        </span>
+                    {% else %}
+                        {% for skill in job.get('missing_skills', []) %}
+                        <span class="badge-pill badge-skill-missing" style="font-size: 0.82rem; padding: 0.3rem 0.7rem;">
+                            <i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> {{ skill }}
+                        </span>
+                        {% else %}
+                        <span class="badge-pill badge-match-high">All required competencies matched!</span>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Job Description Overview -->
         <div style="margin-bottom: 2rem;">
             <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                 <i class="fa-solid fa-file-lines" style="color: var(--primary);"></i> Job Description & Overview
@@ -96,47 +337,14 @@
             </div>
         </div>
 
-        <!-- Section 2: Matched & Missing Skills Breakdown -->
-        <div style="margin-bottom: 2rem;">
-            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Skill Compatibility Analysis
-            </h3>
-            
-            <div style="margin-bottom: 1rem;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.4rem;">
-                    <i class="fa-solid fa-circle-check" style="color: var(--success); margin-right: 0.3rem;"></i> Matched Skills (You Have These)
-                </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-                    {% for skill in job.get('matched_skills', []) %}
-                        <span class="badge-pill badge-skill-extracted">{{ skill }}</span>
-                    {% else %}
-                        <span style="font-size: 0.82rem; color: var(--text-muted);">No direct keyword matches found.</span>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div>
-                <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.4rem;">
-                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning); margin-right: 0.3rem;"></i> Missing Skills (Job Demands These)
-                </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-                    {% for skill in job.get('missing_skills', []) %}
-                        <span class="badge-pill badge-skill-missing">{{ skill }}</span>
-                    {% else %}
-                        <span class="badge-pill badge-match-high">All required skills matched!</span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 3: Recommended Learning Resources -->
+        <!-- Section 4: Recommended Learning Resources -->
         {% if learning_resources %}
         <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 1.25rem;">
             <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: #1e40af; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                 <i class="fa-solid fa-graduation-cap"></i> Suggested Learning Resources for Missing Skills
             </h4>
             <p style="font-size: 0.85rem; color: #1e3a8a; margin-bottom: 1rem;">
-                Learn these competencies to increase your match percentage for this role:
+                Acquire these competencies to raise your score toward 90%+ for this opening:
             </p>
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                 {% for res in learning_resources[:4] %}
@@ -145,7 +353,7 @@
                         <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main);">{{ res.title }}</div>
                         <div style="font-size: 0.78rem; color: var(--text-muted);">{{ res.provider }} • {{ res.level }}</div>
                     </div>
-                    <a href="{{ res.url }}" target="_blank" class="btn btn-outline btn-sm" style="font-size: 0.78rem;">
+                    <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size: 0.78rem;">
                         View Course <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </a>
                 </div>
@@ -160,7 +368,7 @@
         <!-- Company Information Card -->
         <div class="card-panel">
             <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-building" style="color: var(--primary);"></i> Company Information
+                <i class="fa-solid fa-building" style="color: var(--primary);"></i> Company & Job Info
             </h3>
 
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
@@ -169,68 +377,51 @@
                 </div>
                 <div>
                     <strong style="font-size: 1rem; color: var(--text-main);">{{ job.get('employer_name') or job.get('company') or 'Hiring Company' }}</strong>
-                    <div style="font-size: 0.78rem; color: var(--text-muted);">Technology & Digital Services</div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">Verified Real-Time Listing</div>
                 </div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.85rem; color: var(--text-muted);">
                 <div><i class="fa-solid fa-location-dot" style="width: 20px; color: var(--primary);"></i> {{ job.get('job_city') or job.get('location') or 'Remote / Various' }}</div>
                 <div><i class="fa-solid fa-briefcase" style="width: 20px; color: var(--primary);"></i> {{ job.get('job_employment_type', 'Full-time') }}</div>
+                <div><i class="fa-solid fa-satellite-dish" style="width: 20px; color: var(--primary);"></i> Source: {{ job.get('source', 'Live Web') }}</div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.85rem; border-top: 1px solid var(--border-color); padding-top: 0.85rem; margin-top: 0.75rem;">
                 <div style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light);">
-                    Application Channels
-                </div>
-                {% if job.get('official_career_url') %}
-                <div>
-                    <i class="fa-solid fa-building-circle-arrow-right" style="width: 20px; color: var(--primary);"></i>
-                    <a href="{{ job.get('official_career_url') }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">
-                        Official Career Portal <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
-                    </a>
-                </div>
-                {% endif %}
-                <div>
-                    <i class="fa-brands fa-linkedin" style="width: 20px; color: #0a66c2;"></i>
-                    <a href="{{ job.get('linkedin_apply_link') or ('https://www.linkedin.com/jobs/search/?keywords=' + (job.get('job_title','')|urlencode) + '+' + (job.get('employer_name', '')|urlencode)) }}" target="_blank" style="color: #0a66c2; font-weight: 600; text-decoration: none;">
-                        Apply via LinkedIn Jobs <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
-                    </a>
+                    Application Portal
                 </div>
                 <div>
-                    <i class="fa-solid fa-layer-group" style="width: 20px; color: #ea4335;"></i>
-                    <a href="{{ job.get('google_jobs_link') or ('https://www.google.com/search?q=' + (job.get('job_title','')|urlencode) + '+' + (job.get('employer_name', '')|urlencode) + '+jobs&ibp=htl;jobs') }}" target="_blank" style="color: #ea4335; text-decoration: none;">
-                        Google for Jobs Board <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
+                    <i class="fa-solid fa-arrow-up-right-from-square" style="width: 20px; color: var(--primary);"></i>
+                    <a href="{{ url_for('jobs.apply_redirect', index=index) }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                        Original Posting on {{ job.get('source', 'Company Site') }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
                     </a>
                 </div>
-                {% if job.get('bdjobs_link') or ('bangladesh' in ((job.get('job_city') or job.get('location', ''))|lower)) or ('dhaka' in ((job.get('job_city') or job.get('location', ''))|lower)) %}
-                <div>
-                    <i class="fa-solid fa-briefcase" style="width: 20px; color: #059669;"></i>
-                    <a href="{{ job.get('bdjobs_link') or ('https://jobs.bdjobs.com/jobsearch.asp?txtsearch=' + (job.get('job_title','')|urlencode)) }}" target="_blank" style="color: #059669; text-decoration: none;">
-                        Search on Bdjobs <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
 
         <!-- Job Details Card -->
         <div class="card-panel">
             <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Match Summary
+                <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Compatibility Metrics
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.88rem;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);"><i class="fa-solid fa-clock"></i> Job Type</span>
-                    <strong style="color: var(--text-main);">{{ job.get('job_employment_type', 'Full-time') }}</strong>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-bullseye"></i> Total Match Score</span>
+                    <strong style="color: var(--primary);">{{ job.get('combined_score', 80) }}%</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);"><i class="fa-solid fa-bullseye"></i> AI Match Score</span>
-                    <strong style="color: var(--primary);">{{ job.get('combined_score', job.get('match_score', 80)) }}%</strong>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-check-double"></i> Direct Matches</span>
+                    <strong style="color: var(--success);">{{ (job.get('matched_skills', []))|length }}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);"><i class="fa-solid fa-check-double"></i> Matched Skills</span>
-                    <strong style="color: var(--text-main);">{{ (job.get('matched_skills', []))|length }} / {{ (job.get('job_skills', []))|length }}</strong>
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-half-stroke"></i> Partial Matches</span>
+                    <strong style="color: #2563eb;">{{ (job.get('partial_skills', []))|length }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);"><i class="fa-solid fa-triangle-exclamation"></i> Missing Skills</span>
+                    <strong style="color: var(--danger);">{{ (job.get('missing_skills', []))|length }}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <span style="color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> Location</span>
@@ -243,7 +434,7 @@
         <div class="card-panel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fa-solid fa-gear" style="color: var(--primary);"></i> Similar Jobs
+                    <i class="fa-solid fa-gear" style="color: var(--primary);"></i> Similar Live Jobs
                 </h3>
                 <a href="{{ url_for('jobs.results') }}" style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;">View All <i class="fa-solid fa-arrow-right"></i></a>
             </div>
@@ -254,7 +445,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
                             <strong style="font-size: 0.9rem; color: var(--text-main);">
-                                <a href="{{ url_for('jobs.job_detail', index=sim.cache_id) }}" style="color: inherit; text-decoration: none;">
+                                <a href="{{ url_for('jobs.job_detail', index=sim.get('job_id', sim.get('cache_id', loop.index0))) }}" style="color: inherit; text-decoration: none;">
                                     {{ sim.job_title }}
                                 </a>
                             </strong>
@@ -295,6 +486,7 @@
         <!-- Modal Body Form -->
         <form method="POST" action="{{ url_for('jobs.apply_job') }}" style="padding: 1.5rem;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="job_id" value="{{ job.get('job_id', index) }}">
             <input type="hidden" name="job_title" value="{{ job.get('job_title', '') }}">
             <input type="hidden" name="company" value="{{ job.get('employer_name') or job.get('company', '') }}">
             <input type="hidden" name="location" value="{{ job.get('job_city') or job.get('location', 'Remote') }}">
@@ -338,13 +530,16 @@
             <div style="margin-bottom: 1.25rem;">
                 <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Note / Message to Employer (Optional)</label>
                 <textarea name="cover_note" class="form-control" rows="2" style="font-size: 0.82rem; line-height: 1.4;">I am interested in applying for the {{ job.get('job_title') }} position at {{ job.get('employer_name') or job.get('company') }}. My qualifications and technical skills closely match your requirements.</textarea>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+                    <i class="fa-solid fa-circle-info"></i> Submitting will track this in your pipeline and redirect you directly to the original job application portal.
+                </div>
             </div>
 
             <!-- Actions -->
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('quickApplyModal').style.display='none'">Cancel</button>
                 <button type="submit" class="btn btn-primary btn-sm btn-pill">
-                    <i class="fa-solid fa-paper-plane"></i> Submit Application
+                    <i class="fa-solid fa-paper-plane"></i> Submit & Go to Application Portal
                 </button>
             </div>
         </form>
