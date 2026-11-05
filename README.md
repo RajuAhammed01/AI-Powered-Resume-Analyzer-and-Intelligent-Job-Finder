@@ -6,6 +6,8 @@ JobSnap is an AI-powered Flask application that extracts verified skills from re
 
 ## ⚡ One-Click Run & Start
 
+Most Easy: Pnnen file in terminal and then paste : ".\venv\Scripts\python.exe start_app.py"
+
 No manual terminal commands or environment configuration needed! You can launch JobSnap in **one click** using any of the options below:
 
 ### Option 1: Double-Click Launcher (Windows Batch)
