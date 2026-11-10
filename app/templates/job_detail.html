@@ -190,8 +190,13 @@
                         Career Fit (10%)
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
-                        <span style="font-size: 1.25rem; font-weight: 800; color: {% if job.get('is_unrelated_domain') %}#dc2626{% else %}#059669{% endif %};">{{ job.get('score_breakdown', {}).get('title_score_pct', 80) }}%</span>
-                        <span style="font-size: 0.75rem; font-weight: 700; color: {% if job.get('is_unrelated_domain') %}#dc2626{% else %}#059669{% endif %};">{{ job.get('score_breakdown', {}).get('title_pts', 8) }} pts</span>
+                        {% if job.get('is_unrelated_domain') %}
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #dc2626;">{{ job.get('score_breakdown', {}).get('title_score_pct', 80) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #dc2626;">{{ job.get('score_breakdown', {}).get('title_pts', 8) }} pts</span>
+                        {% else %}
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #059669;">{{ job.get('score_breakdown', {}).get('title_score_pct', 80) }}%</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #059669;">{{ job.get('score_breakdown', {}).get('title_pts', 8) }} pts</span>
+                        {% endif %}
                     </div>
                     <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.35rem;">
                         Career domain compatibility & title alignment
@@ -203,9 +208,15 @@
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 0.75rem;">
                 <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-main); margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
                     <span><i class="fa-solid fa-clipboard-check" style="color: var(--primary); margin-right: 0.35rem;"></i> Diagnostic Evaluation Verdict:</span>
-                    <span style="font-size: 0.82rem; font-weight: 700; color: {% if job.get('is_unrelated_domain') %}#dc2626{% elif job.get('combined_score', 0) >= 80 %}#166534{% elif job.get('combined_score', 0) >= 65 %}#1e40af{% else %}#b45309{% endif %};">
-                        {{ job.get('detailed_diagnostic', {}).get('verdict', 'Evaluated Match') }}
-                    </span>
+                    {% if job.get('is_unrelated_domain') %}
+                    <span style="font-size: 0.82rem; font-weight: 700; color: #dc2626;">{{ job.get('detailed_diagnostic', {}).get('verdict', 'Evaluated Match') }}</span>
+                    {% elif job.get('combined_score', 0) >= 80 %}
+                    <span style="font-size: 0.82rem; font-weight: 700; color: #166534;">{{ job.get('detailed_diagnostic', {}).get('verdict', 'Evaluated Match') }}</span>
+                    {% elif job.get('combined_score', 0) >= 65 %}
+                    <span style="font-size: 0.82rem; font-weight: 700; color: #1e40af;">{{ job.get('detailed_diagnostic', {}).get('verdict', 'Evaluated Match') }}</span>
+                    {% else %}
+                    <span style="font-size: 0.82rem; font-weight: 700; color: #b45309;">{{ job.get('detailed_diagnostic', {}).get('verdict', 'Evaluated Match') }}</span>
+                    {% endif %}
                 </div>
                 
                 <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.75rem;">
