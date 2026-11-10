@@ -1,3 +1,6 @@
 [tool.vercel]
 entrypoint = "run:app"
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
