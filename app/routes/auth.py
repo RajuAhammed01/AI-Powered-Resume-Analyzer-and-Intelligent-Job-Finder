@@ -112,6 +112,38 @@ def activity():
     return render_template("auth/activity.html", logs=logs)
 
 
+@auth_bp.route("/export-my-data")
+@login_required
+def export_my_data():
+    """Download the authenticated user's own profile and activity records (privacy-preserving)."""
+    import json
+    data = {
+        "user_id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "phone": current_user.phone,
+        "location": current_user.location,
+        "title_role": current_user.title_role,
+        "account_created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+        "last_login_at": current_user.last_login.isoformat() if current_user.last_login else None,
+        "total_logins": current_user.login_count or 1,
+        "login_activity": [
+            {
+                "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                "status": log.status,
+                "ip_address": log.ip_address,
+                "user_agent": log.user_agent,
+            }
+            for log in current_user.login_history[:20]
+        ],
+    }
+    return Response(
+        json.dumps(data, indent=2),
+        mimetype="application/json",
+        headers={"Content-Disposition": f"attachment;filename=my_jobsnap_data_{current_user.id}.json"},
+    )
+
+
 @auth_bp.route("/dataset")
 @login_required
 def dataset_view():

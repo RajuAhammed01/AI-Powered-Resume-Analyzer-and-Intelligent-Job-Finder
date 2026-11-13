@@ -179,3 +179,20 @@ def get_auth_dataset_summary() -> dict:
         "latest_login_date": latest_login.timestamp.strftime("%Y-%m-%d %H:%M:%S") if latest_login and latest_login.timestamp else "None",
     }
 
+
+if __name__ == "__main__":
+    import sys
+    # Backend Command Line Tool for Dataset Management
+    from app import create_app
+    app = create_app()
+    with app.app_context():
+        if "--export" in sys.argv:
+            path = get_dataset_storage_path("users_auth_dataset.json")
+            ok = sync_auth_dataset_file(path)
+            print(f"[BACKEND DATASET] Synchronized to: {path} (success={ok})")
+        else:
+            summary = get_auth_dataset_summary()
+            print("[BACKEND DATASET] Authentication & User Stats:")
+            for k, v in summary.items():
+                print(f"  {k}: {v}")
+

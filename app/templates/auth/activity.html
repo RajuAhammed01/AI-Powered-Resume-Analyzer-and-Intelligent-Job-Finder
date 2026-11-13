@@ -58,8 +58,8 @@
         <div style="font-size: 1.05rem; font-weight: 700; color: #059669;">
             <i class="fa-solid fa-shield-halved"></i> Salted Cryptographic Hash
         </div>
-        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem; font-family: monospace;">
-            {{ current_user.password_hash[:26] }}...
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Secured server-side with PBKDF2/scrypt
         </div>
     </div>
 </div>
@@ -76,11 +76,8 @@
             </p>
         </div>
         <div>
-            <a href="{{ url_for('auth.dataset_view') }}" class="btn btn-outline btn-sm">
-                <i class="fa-solid fa-database"></i> View Full Auth Dataset
-            </a>
-            <a href="{{ url_for('auth.export_dataset') }}" class="btn btn-primary btn-sm" style="margin-left: 0.5rem;">
-                <i class="fa-solid fa-download"></i> Export JSON
+            <a href="{{ url_for('auth.export_my_data') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-download"></i> Download My Activity
             </a>
         </div>
     </div>

@@ -134,6 +134,14 @@ class TestAuthDatasetAndVercel(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.content_type, "application/json")
 
+        # Privacy-preserving personal data export
+        res = self.client.get("/export-my-data")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.content_type, "application/json")
+        user_data = json.loads(res.data)
+        self.assertEqual(user_data["email"], "dev@test.com")
+        self.assertNotIn("password_hash", user_data)
+
     def test_vercel_wsgi_entrypoint(self):
         from api.index import app as vercel_app
         self.assertIsNotNone(vercel_app)
