@@ -56,10 +56,10 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="form-field">
-                    <label class="form-label" for="email">Email Address</label>
+                    <label class="form-label" for="email">Email or Username</label>
                     <div class="input-icon-group">
-                        <i class="fa-regular fa-envelope field-icon"></i>
-                        <input type="email" id="email" name="email" class="input-control" placeholder="you@example.com" required>
+                        <i class="fa-regular fa-user field-icon"></i>
+                        <input type="text" id="email" name="email" class="input-control" placeholder="Enter your email or username" required autofocus>
                     </div>
                 </div>
 

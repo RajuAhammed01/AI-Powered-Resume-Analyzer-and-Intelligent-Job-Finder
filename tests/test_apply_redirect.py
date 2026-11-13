@@ -18,10 +18,11 @@ from app.services.job_validator import (
 
 @pytest.fixture
 def app():
-    app = create_app()
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    app.config["WTF_CSRF_ENABLED"] = False
+    app = create_app(test_config={
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "WTF_CSRF_ENABLED": False,
+    })
 
     with app.app_context():
         db.create_all()

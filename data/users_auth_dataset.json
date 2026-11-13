@@ -1,61 +1,46 @@
 {
   "metadata": {
     "dataset_name": "JobSnap User Authentication & Login Activity Dataset",
-    "generated_at": "2026-11-13T07:34:36.965967",
-    "total_users": 2,
+    "generated_at": "2026-11-13T08:24:59.918646",
+    "total_users": 1,
     "storage_type": "email_indexed_hashmap",
     "hash_algorithm": "werkzeug_scrypt_pbkdf2_salted"
   },
   "users_hashmap": {
-    "alex@enterprise.com": {
+    "ridoyraihan@gmail.com": {
       "user_id": 1,
-      "name": "Alex Morgan",
-      "email": "alex@enterprise.com",
-      "password_hash": "scrypt:32768:8:1$LDWU8Lq5vOnWwun0$4f0bf4bc611d25368f60e0b1fb928726952fd9806fef07340095ebaedf08bea5e205d42982ec0bd50ce714878c464dd5cd5a84eeaf0af03bfd9461404b7aa56f",
+      "name": "ridoy",
+      "email": "ridoyraihan@gmail.com",
+      "password_hash": "scrypt:32768:8:1$glzuNFkGNpS9x4XI$2ae8197ca56af5dbb996f995d5e2ea69e8aec260945b8d83f7194ff5c3ebc2319d4f5f1eebb5c01f093193e94604b4088f0b0f3083e519293d454d299fcc9b32",
       "status": "active",
-      "signup_date": "2026-11-13 07:34:34",
-      "created_at_iso": "2026-11-13T07:34:34.509112",
-      "last_login_date": "2026-11-13 07:34:34",
-      "last_login_iso": "2026-11-13T07:34:34.668496",
+      "signup_date": "2026-11-13 08:24:56",
+      "created_at_iso": "2026-11-13T08:24:56.312008",
+      "last_login_date": "2026-11-13 08:24:59",
+      "last_login_iso": "2026-11-13T08:24:59.910820",
       "last_login_ip": "127.0.0.1",
-      "total_logins": 1,
+      "total_logins": 2,
       "login_history": [
         {
-          "id": 1,
+          "id": 3,
           "user_id": 1,
-          "email": "alex@enterprise.com",
+          "email": "ridoyraihan@gmail.com",
           "status": "SUCCESS",
           "ip_address": "127.0.0.1",
-          "user_agent": "Werkzeug/3.1.8",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
           "failure_reason": "",
-          "timestamp": "2026-11-13T07:34:34.668496",
-          "formatted_date": "2026-11-13 07:34:34"
-        }
-      ]
-    },
-    "elena@example.com": {
-      "user_id": 2,
-      "name": "Elena Rostova",
-      "email": "elena@example.com",
-      "password_hash": "scrypt:32768:8:1$IWPIGABmhygDSWWD$37ac5180175135626adb3b7ecba3b08e2b6b7bb72def3132d2e3b1c412e8e441e0390a0c770180d65608bf2e05aa987348ed4e6f96964b96d94b1b18a565bae0",
-      "status": "active",
-      "signup_date": "2026-11-13 07:34:36",
-      "created_at_iso": "2026-11-13T07:34:36.825329",
-      "last_login_date": "2026-11-13 07:34:36",
-      "last_login_iso": "2026-11-13T07:34:36.953323",
-      "last_login_ip": "127.0.0.1",
-      "total_logins": 1,
-      "login_history": [
+          "timestamp": "2026-11-13T08:24:59.910820",
+          "formatted_date": "2026-11-13 08:24:59"
+        },
         {
           "id": 2,
-          "user_id": 2,
-          "email": "elena@example.com",
+          "user_id": 1,
+          "email": "ridoyraihan@gmail.com",
           "status": "SUCCESS",
           "ip_address": "127.0.0.1",
-          "user_agent": "Werkzeug/3.1.8",
-          "failure_reason": "",
-          "timestamp": "2026-11-13T07:34:36.953323",
-          "formatted_date": "2026-11-13 07:34:36"
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+          "failure_reason": "Account registration created",
+          "timestamp": "2026-11-13T08:24:56.426313",
+          "formatted_date": "2026-11-13 08:24:56"
         }
       ]
     }

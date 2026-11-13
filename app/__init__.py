@@ -11,9 +11,11 @@ from config import Config
 csrf = CSRFProtect()
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_object(Config)
+    if test_config:
+        app.config.update(test_config)
     try:
         os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     except Exception as e:
@@ -58,5 +60,11 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        if not app.config.get("TESTING"):
+            try:
+                from app.services.auth_dataset import restore_users_from_auth_dataset
+                restore_users_from_auth_dataset()
+            except Exception as e:
+                app.logger.warning(f"Could not auto-restore users from dataset: {e}")
 
     return app

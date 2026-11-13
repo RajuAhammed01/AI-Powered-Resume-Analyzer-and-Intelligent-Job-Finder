@@ -63,31 +63,46 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        from sqlalchemy import func
+        identifier = request.form.get("email", "").strip()
         password = request.form.get("password", "")
-        user = User.query.filter_by(email=email).first()
+        remember = bool(request.form.get("remember"))
 
-        if user and user.check_password(password):
+        # Support sign-in by registered Email OR Username/Name (case-insensitive)
+        user = User.query.filter(
+            (func.lower(User.email) == identifier.lower()) |
+            (func.lower(User.name) == identifier.lower())
+        ).first()
+
+        # Verify password (including whitespace-tolerant check for copy-paste safety)
+        password_valid = False
+        if user:
+            if user.check_password(password):
+                password_valid = True
+            elif password != password.strip() and user.check_password(password.strip()):
+                password_valid = True
+
+        if user and password_valid:
             # Record successful login date and client details
             record_login_activity(
-                email=email,
+                email=user.email,
                 status="SUCCESS",
                 user=user,
                 failure_reason="",
             )
-            login_user(user)
+            login_user(user, remember=remember)
             return redirect(url_for("main.dashboard"))
 
         # Record failed login attempt in dataset for security auditing
         reason = "Invalid password" if user else "Account not registered"
         record_login_activity(
-            email=email,
+            email=user.email if user else identifier,
             status="FAILED",
             user=user,
             failure_reason=reason,
         )
 
-        flash("Invalid email or password")
+        flash("Invalid email/username or password")
 
     return render_template("auth/login.html", is_auth_page=True)
 

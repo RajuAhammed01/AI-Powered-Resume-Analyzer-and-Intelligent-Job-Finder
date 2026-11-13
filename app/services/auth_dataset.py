@@ -29,6 +29,10 @@ def _is_writable(path: str) -> bool:
 
 def get_dataset_storage_path(filename: str = "users_auth_dataset.json") -> str:
     """Return a safe writable path for the auth dataset (falls back to /tmp on serverless)."""
+    # Isolate test runs to a temporary test file so real user accounts are never overwritten during tests
+    if current_app and current_app.config.get("TESTING") and filename == "users_auth_dataset.json":
+        filename = "test_users_auth_dataset.json"
+
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     data_dir = os.path.join(base_dir, "data")
     
@@ -156,6 +160,56 @@ def sync_auth_dataset_file(filepath: str = None) -> bool:
         if current_app:
             current_app.logger.warning(f"Could not sync auth dataset file: {e}")
         return False
+
+
+def restore_users_from_auth_dataset() -> int:
+    """
+    Restore registered users and their password hashes from users_auth_dataset.json into the database
+    if they do not already exist (e.g. on fresh instances, serverless /tmp reloads on Vercel, or newly cloned environments).
+    """
+    from app.models import User, db
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    dataset_path = os.path.join(base_dir, "data", "users_auth_dataset.json")
+
+    if not os.path.exists(dataset_path):
+        return 0
+
+    restored_count = 0
+    try:
+        with open(dataset_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        users_map = data.get("users_hashmap", {})
+        for email, u_data in users_map.items():
+            clean_email = email.strip().lower()
+            existing = User.query.filter_by(email=clean_email).first()
+            if not existing and u_data.get("password_hash"):
+                created_iso = u_data.get("created_at_iso")
+                last_login_iso = u_data.get("last_login_iso")
+                created_at = datetime.fromisoformat(created_iso) if created_iso else datetime.utcnow()
+                last_login = datetime.fromisoformat(last_login_iso) if last_login_iso else None
+
+                user = User(
+                    name=u_data.get("name") or clean_email.split("@")[0],
+                    email=clean_email,
+                    password_hash=u_data.get("password_hash"),
+                    created_at=created_at,
+                    last_login=last_login,
+                    last_login_ip=u_data.get("last_login_ip", ""),
+                    login_count=u_data.get("total_logins", 0),
+                    status=u_data.get("status", "active"),
+                )
+                db.session.add(user)
+                restored_count += 1
+
+        if restored_count > 0:
+            db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        if current_app:
+            current_app.logger.warning(f"Could not restore users from auth dataset: {e}")
+
+    return restored_count
 
 
 def get_auth_dataset_summary() -> dict:

@@ -5,10 +5,11 @@ from app.models import User, Resume, JobPreference, SavedJob
 
 class TestResumeAIPages(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
-        self.app.config["TESTING"] = True
-        self.app.config["WTF_CSRF_ENABLED"] = False
-        self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+        self.app = create_app(test_config={
+            "TESTING": True,
+            "WTF_CSRF_ENABLED": False,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        })
         self.client = self.app.test_client()
 
         with self.app.app_context():
