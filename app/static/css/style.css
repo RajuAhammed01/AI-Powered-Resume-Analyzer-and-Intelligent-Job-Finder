@@ -68,8 +68,15 @@
   --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-* {
+html {
   box-sizing: border-box;
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
   margin: 0;
   padding: 0;
 }
@@ -84,6 +91,28 @@ body {
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+  position: relative;
+}
+
+/* Universal Media and Typography Overflow Guard */
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+p, h1, h2, h3, h4, h5, h6, span, a, div, td, th, label {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+pre, code {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* App Wrapper Layout */
@@ -91,6 +120,9 @@ body {
   display: flex;
   min-height: 100vh;
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  position: relative;
 }
 
 /* Dark Navy Sidebar Navigation (#14243B) */
@@ -282,7 +314,10 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  max-width: calc(100% - 260px);
+  width: calc(100% - 260px);
   background-color: var(--bg-app);
+  overflow-x: hidden;
 }
 
 /* App Header Topbar */
@@ -297,6 +332,9 @@ body {
   top: 0;
   z-index: 90;
   box-shadow: var(--shadow-sm);
+  max-width: 100%;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .topbar-search-form {
@@ -368,6 +406,8 @@ body {
   gap: 1.5rem;
   position: relative;
   overflow: hidden;
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 
 .hero-welcome-card::after {
@@ -618,6 +658,8 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 /* Cards & Surfaces - Minimalist SaaS (12-16px radius, subtle border) */
@@ -628,6 +670,9 @@ body {
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .card-panel:hover {
@@ -1016,11 +1061,28 @@ body {
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
-/* Table */
+/* Table & Responsive Container */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
 .custom-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
+  min-width: 500px;
 }
 
 .custom-table th, .custom-table td {
@@ -1128,6 +1190,43 @@ body {
   transform: translateY(-4px);
   box-shadow: 0 16px 32px -8px rgba(37, 99, 235, 0.15);
   border-color: var(--primary-border);
+}
+
+.job-card.job-card-active,
+.job-card-unified.job-card-active {
+  border-color: var(--primary) !important;
+  background-color: #F8FAFC !important;
+  box-shadow: 0 4px 16px rgba(26, 109, 247, 0.16), 0 0 0 2px rgba(26, 109, 247, 0.35) !important;
+  position: relative;
+}
+
+.job-card.job-card-active::before,
+.job-card-unified.job-card-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--primary);
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+[data-theme="dark"] .job-card.job-card-active,
+[data-theme="dark"] .job-card-unified.job-card-active {
+  background-color: #132238 !important;
+  border-color: #3B82F6 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(59, 130, 246, 0.45) !important;
+}
+
+.job-preview-pane {
+  animation: fadeInPane 0.2s ease-in-out;
+}
+
+@keyframes fadeInPane {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .job-title-clamped {
@@ -1314,13 +1413,190 @@ body {
   transform: scale(0.98);
 }
 
+/* =========================================================================
+   Standard Responsive Layout System (Zero Unintended Horizontal Overflow)
+   ========================================================================= */
+
+/* Universal Responsive Split Grids (Replaces rigid inline grid layouts) */
+.responsive-split-grid,
+.dashboard-columns,
+.grid-split-2 {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.grid-split-3-2 {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.grid-split-equal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Ensure all flex and grid children can shrink without pushing width */
+.responsive-split-grid > *,
+.dashboard-columns > *,
+.grid-split-2 > *,
+.grid-split-3-2 > *,
+.grid-split-equal > *,
+.stat-card-grid > *,
+.pipeline-grid > *,
+.funnel-pipeline-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Application Lifecycle Funnel Responsive Grid */
+.funnel-pipeline-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.funnel-chevron {
+  color: #CBD5E1;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Option Grids (Preferences page) */
+.option-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.option-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Landing Page Responsive Grids */
+.hero-mock-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.how-it-works-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Profile Navigation Tabs (Scrollable on small screens) */
+.profile-tabs {
+  display: flex;
+  gap: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  scrollbar-width: thin;
+}
+
+.profile-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.profile-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+/* Sticky Right Column Panel (Reverts to static in single-column mode) */
+.sticky-sidebar-panel {
+  position: sticky;
+  top: 90px;
+  align-self: start;
+}
+
+/* Topbar Components Guard */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  max-width: 460px;
+  min-width: 0;
+}
+
+.topbar-search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
 /* Responsive Overrides */
 @media (max-width: 1200px) {
   .stat-card-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .dashboard-columns {
+}
+
+@media (max-width: 1100px) {
+  .funnel-pipeline-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.85rem;
+  }
+  .funnel-chevron {
+    display: none !important;
+  }
+  .topbar-btn-find {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .responsive-split-grid,
+  .dashboard-columns,
+  .grid-split-2,
+  .grid-split-3-2,
+  .grid-split-equal {
     grid-template-columns: 1fr !important;
+    gap: 1.25rem;
+  }
+  .sticky-sidebar-panel {
+    position: static !important;
+    top: auto !important;
   }
 }
 
@@ -1340,16 +1616,67 @@ body {
     display: inline-flex !important;
   }
   .main-wrapper {
-    margin-left: 0;
+    margin-left: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
   .hero-wrapper, .auth-page-wrapper {
     grid-template-columns: 1fr;
+    gap: 2.5rem;
   }
   .auth-hero-pane {
     display: none;
   }
   .pipeline-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-mock-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .how-it-works-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .option-grid-3,
+  .option-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-nav {
+    padding: 0.75rem 1rem !important;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .landing-links {
+    gap: 0.75rem !important;
+    font-size: 0.85rem;
+  }
+  .landing-nav-link {
+    display: none !important;
+  }
+  .app-footer {
+    padding: 2rem 1.25rem !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .app-topbar {
+    padding: 0.75rem 1rem !important;
+    gap: 0.5rem;
+  }
+  .topbar-user-meta {
+    display: none !important;
+  }
+  .topbar-btn-text {
+    display: none !important;
+  }
+  .hero-welcome-card {
+    padding: 1.5rem 1.25rem;
   }
 }
 
@@ -1360,14 +1687,18 @@ body {
   .pipeline-grid {
     grid-template-columns: 1fr;
   }
+  .funnel-pipeline-grid {
+    grid-template-columns: 1fr !important;
+  }
   .content-container {
     padding: 1.25rem 1rem 2rem;
   }
-  .app-topbar {
-    padding: 0.75rem 1rem;
-  }
-  .topbar-user-meta {
-    display: none;
+}
+
+@media (max-width: 520px) {
+  .option-grid-3,
+  .option-grid-4 {
+    grid-template-columns: 1fr !important;
   }
 }
 

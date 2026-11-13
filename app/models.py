@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime, timezone
 
 from flask_login import UserMixin
@@ -133,6 +134,38 @@ class Resume(db.Model):
             except Exception:
                 return [s.strip() for s in self.extracted_skills.split(",") if s.strip()]
         return []
+
+    @property
+    def education_summary(self):
+        """Clean, professional 1-2 line summary of education without long runaway coursework."""
+        if not self.education:
+            return ""
+        lines = [line.strip() for line in self.education.split("\n") if line.strip()]
+        clean = []
+        for l in lines:
+            lower = l.lower()
+            if any(k in lower for k in ["relevant coursework", "coursework", "courses:"]):
+                sub = re.split(r"(?i)\s+relevant coursework|\s+coursework", l)[0].strip(" -|:•\t")
+                if sub and len(sub) > 2:
+                    clean.append(sub)
+                break
+            if l.startswith("•") or l.startswith("-") or l.startswith("*"):
+                continue
+            clean.append(l)
+
+        if not clean and lines:
+            sub = re.split(r"(?i)\s+relevant coursework|\s+coursework", lines[0])[0].strip(" -|:•\t")
+            clean = [sub if sub else lines[0]]
+
+        return "\n".join([c for c in clean[:2] if c])
+
+    @property
+    def experience_summary(self):
+        """Clean concise first 1-2 lines of work experience for UI snapshot cards."""
+        if not self.experience:
+            return ""
+        lines = [line.strip() for line in self.experience.split("\n") if line.strip()]
+        return "\n".join(lines[:2])
 
 
 class JobPreference(db.Model):

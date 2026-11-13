@@ -87,23 +87,23 @@
 
         <div class="main-wrapper">
             <header class="app-topbar">
-                <div style="display: flex; align-items: center; gap: 1rem; flex: 1; max-width: 460px;">
+                <div class="topbar-left">
                     <button type="button" class="btn btn-outline btn-sm mobile-hamburger-btn" onclick="toggleMobileSidebar()" title="Toggle Navigation Menu">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <!-- Global Search Input -->
-                    <form action="{{ url_for('jobs.results') }}" method="GET" class="topbar-search-form" style="width: 100%;">
+                    <form action="{{ url_for('jobs.results') }}" method="GET" class="topbar-search-form">
                         <i class="fa-solid fa-magnifying-glass topbar-search-icon"></i>
                         <input type="text" name="q" class="topbar-search-input" placeholder="Search for jobs..." value="{{ request.args.get('q', '') }}">
                     </form>
                 </div>
 
                 <div class="topbar-user">
-                    <a href="{{ url_for('resume.upload') }}" class="btn btn-dark-pill btn-sm">
-                        <i class="fa-solid fa-plus" style="font-size: 0.78rem;"></i> Upload Resume
+                    <a href="{{ url_for('resume.upload') }}" class="btn btn-dark-pill btn-sm topbar-btn-upload">
+                        <i class="fa-solid fa-plus" style="font-size: 0.78rem;"></i> <span class="topbar-btn-text">Upload Resume</span>
                     </a>
-                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline-pill btn-sm">
-                        <i class="fa-solid fa-magnifying-glass"></i> Find Jobs
+                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline-pill btn-sm topbar-btn-find">
+                        <i class="fa-solid fa-magnifying-glass"></i> <span class="topbar-btn-text">Find Jobs</span>
                     </a>
 
                     <!-- Notification Icon -->
@@ -156,10 +156,10 @@
         </a>
 
         <div class="landing-links">
-            <a href="{{ url_for('main.index') }}">Home</a>
-            <a href="{{ url_for('main.index') }}#features">Features</a>
-            <a href="{{ url_for('main.index') }}#how-it-works">How It Works</a>
-            <a href="{{ url_for('main.index') }}#about">About</a>
+            <a href="{{ url_for('main.index') }}" class="landing-nav-link">Home</a>
+            <a href="{{ url_for('main.index') }}#features" class="landing-nav-link">Features</a>
+            <a href="{{ url_for('main.index') }}#how-it-works" class="landing-nav-link">How It Works</a>
+            <a href="{{ url_for('main.index') }}#about" class="landing-nav-link">About</a>
 
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-pill">Dashboard</a>

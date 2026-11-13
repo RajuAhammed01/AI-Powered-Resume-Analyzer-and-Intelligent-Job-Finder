@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem;">
+<div class="grid-split-3-2">
     <!-- Main Left Form Column -->
     <div class="card-panel">
         <form method="POST">
@@ -44,7 +44,7 @@
                 </label>
                 <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Where would you like to work?</div>
 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                <div class="option-grid-3">
                     <label style="border: 2px solid {% if not pref or pref.location_preference == 'Any Location' %}var(--primary){% else %}var(--border-color){% endif %}; background: {% if not pref or pref.location_preference == 'Any Location' %}#eff6ff{% else %}white{% endif %}; border-radius: var(--radius-md); padding: 1rem; text-align: center; cursor: pointer;">
                         <input type="radio" name="location_preference" value="Any Location" {% if not pref or pref.location_preference == 'Any Location' %}checked{% endif %} style="display: none;">
                         <i class="fa-solid fa-globe" style="color: var(--primary); font-size: 1.25rem; display: block; margin-bottom: 0.4rem;"></i>
@@ -71,7 +71,7 @@
                 </label>
                 <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Your preferred level of experience.</div>
 
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem;">
+                <div class="option-grid-4">
                     {% for lvl in ['Entry Level (0-1 years)', 'Junior (1-3 years)', 'Mid Level (3-5 years)', 'Senior (5+ years)'] %}
                     <label style="border: 1px solid {% if pref and pref.experience_level == lvl %}var(--primary){% else %}var(--border-color){% endif %}; background: {% if pref and pref.experience_level == lvl %}#eff6ff{% else %}white{% endif %}; border-radius: var(--radius-md); padding: 0.85rem 0.5rem; text-align: center; cursor: pointer;">
                         <input type="radio" name="experience_level" value="{{ lvl }}" {% if not pref and loop.first or (pref and pref.experience_level == lvl) %}checked{% endif %}>
@@ -103,7 +103,7 @@
                 </label>
                 <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">What type of work arrangement do you prefer?</div>
 
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem;">
+                <div class="option-grid-4">
                     {% for type in ['Full-time', 'Part-time', 'Contract', 'Internship'] %}
                     <label style="border: 1px solid {% if pref and pref.job_type == type %}var(--primary){% else %}var(--border-color){% endif %}; background: {% if pref and pref.job_type == type %}#eff6ff{% else %}white{% endif %}; border-radius: var(--radius-md); padding: 0.85rem 0.5rem; text-align: center; cursor: pointer;">
                         <input type="radio" name="job_type" value="{{ type }}" {% if not pref and loop.first or (pref and pref.job_type == type) %}checked{% endif %}>

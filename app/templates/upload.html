@@ -15,7 +15,7 @@
 </div>
 
 <!-- 2 Column Layout -->
-<div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
+<div class="responsive-split-grid">
     <!-- Left Main Column: Drag & Drop Box + Upload Form + Recent Table -->
     <div>
         <div class="card-panel" style="margin-bottom: 2rem;">
@@ -66,44 +66,46 @@
                 <span style="font-size: 0.82rem; color: var(--primary); font-weight: 600;">View All <i class="fa-solid fa-arrow-right"></i></span>
             </div>
 
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th>File Name</th>
-                        <th>Upload Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if current_user.resumes %}
-                        {% for r in current_user.resumes %}
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
                         <tr>
-                            <td style="font-weight: 600; color: var(--text-main);">
-                                <i class="fa-regular fa-file-lines" style="color: var(--primary); margin-right: 0.4rem;"></i>
-                                {{ r.filename if r.filename else 'My_Resume.pdf' }}
-                            </td>
-                            <td style="color: var(--text-muted);">
-                                {{ r.upload_date.strftime('%b %d, %Y') if r.upload_date else 'Recent' }}
-                            </td>
-                            <td>
-                                <span class="badge-pill badge-match-high">Score: {{ r.completeness_score }}%</span>
-                            </td>
-                            <td>
-                                <a href="{{ url_for('resume.resume_analysis', id=r.id) }}" class="btn btn-outline btn-sm">View Analysis</a>
-                            </td>
+                            <th>File Name</th>
+                            <th>Upload Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                                <i class="fa-solid fa-file-circle-xmark" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem; opacity: 0.6;"></i>
-                                No resumes uploaded yet. Upload a PDF or DOCX file using the box above.
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% if current_user.resumes %}
+                            {% for r in current_user.resumes %}
+                            <tr>
+                                <td style="font-weight: 600; color: var(--text-main);">
+                                    <i class="fa-regular fa-file-lines" style="color: var(--primary); margin-right: 0.4rem;"></i>
+                                    {{ r.filename if r.filename else 'My_Resume.pdf' }}
+                                </td>
+                                <td style="color: var(--text-muted);">
+                                    {{ r.upload_date.strftime('%b %d, %Y') if r.upload_date else 'Recent' }}
+                                </td>
+                                <td>
+                                    <span class="badge-pill badge-match-high">Score: {{ r.completeness_score }}%</span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('resume.resume_analysis', id=r.id) }}" class="btn btn-outline btn-sm">View Analysis</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                    <i class="fa-solid fa-file-circle-xmark" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem; opacity: 0.6;"></i>
+                                    No resumes uploaded yet. Upload a PDF or DOCX file using the box above.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

@@ -15,7 +15,7 @@
 </div>
 
 <!-- Profile Hero Box & Account Status -->
-<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem; margin-bottom: 2rem;">
+<div class="grid-split-3-2" style="margin-bottom: 2rem;">
     <!-- Profile Card -->
     <div class="card-panel" style="display: flex; align-items: center; gap: 1.5rem;">
         <div style="position: relative;">
@@ -69,12 +69,12 @@
 </div>
 
 <!-- Main Section Split -->
-<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem;">
+<div class="grid-split-3-2">
     <!-- Left Personal Information & Password Pane -->
     <div style="display: flex; flex-direction: column; gap: 2rem;">
         <!-- Navigation Sub-Tabs -->
         <div class="card-panel" style="padding: 1.5rem;">
-            <div class="profile-tabs" style="display: flex; gap: 1.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem; font-weight: 600; font-size: 0.95rem;">
+            <div class="profile-tabs">
                 <span class="tab-link active" onclick="switchTab(event, 'tab-personal')" style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: -2px; cursor: pointer;">
                     <i class="fa-solid fa-user"></i> Personal Information
                 </span>
@@ -106,7 +106,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="action" value="update_profile">
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="grid-split-equal" style="margin-bottom: 1.5rem;">
                     <div class="form-field" style="margin: 0;">
                         <label class="form-label" for="name">Full Name</label>
                         <div class="input-icon-group">

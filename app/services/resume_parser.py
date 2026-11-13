@@ -83,20 +83,29 @@ def validate_upload(file, filename: str) -> bool:
 
 # ── Section keywords (case-insensitive) ────────────────────────────────────────
 EDUCATION_KEYWORDS = [
-    "education", "academic", "degree", "qualification", "university",
-    "college", "school", "studies", "bachelor", "master", "phd",
+    "education", "educational background", "academic background",
+    "academics", "academic history", "education & qualifications",
+    "education and qualifications", "qualification", "qualifications",
 ]
 EXPERIENCE_KEYWORDS = [
-    "experience", "work history", "employment", "career", "professional",
-    "job history", "positions held", "work experience",
+    "experience", "work history", "employment", "career", "professional experience",
+    "work experience", "employment history", "positions held", "professional background",
 ]
-SKILLS_KEYWORDS = ["skills", "technical skills", "competencies", "proficiencies"]
-PROJECTS_KEYWORDS = ["projects", "portfolio", "achievements", "accomplishments"]
+SKILLS_KEYWORDS = ["skills", "technical skills", "competencies", "proficiencies", "core competencies"]
+PROJECTS_KEYWORDS = [
+    "projects", "technical projects", "academic projects", "key projects",
+    "personal projects", "portfolio", "achievements", "accomplishments",
+    "certifications", "certificates", "awards", "honors", "activities",
+]
 
 
 def _matches_section(line: str, keywords: list) -> bool:
-    lower = line.lower().strip()
-    return any(kw in lower for kw in keywords) and len(lower) < 60
+    cleaned = re.sub(r"[:\-\t_#*•|]", " ", line).strip().lower()
+    cleaned = re.sub(r"^[0-9\.\s]+", "", cleaned).strip()
+    cleaned = " ".join(cleaned.split())
+    if not cleaned or len(cleaned) > 40:
+        return False
+    return cleaned in keywords or any(cleaned == kw or cleaned.startswith(kw + " ") or cleaned.endswith(" " + kw) for kw in keywords)
 
 
 def calculate_ats_score(text: str, structure: dict, skills: list) -> int:
@@ -253,6 +262,9 @@ def extract_structure(text: str, filepath: str = None) -> dict:
             continue
 
         if current_section == "education":
+            if any(k in stripped.lower() for k in ["relevant coursework", "coursework", "courses:"]):
+                current_section = None
+                continue
             education.append(stripped)
         elif current_section == "experience":
             experience.append(stripped)

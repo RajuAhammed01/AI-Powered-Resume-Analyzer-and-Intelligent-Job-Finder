@@ -90,11 +90,11 @@
 </div>
 
 <!-- Main 2-Column Section -->
-<div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem;">
+<div class="grid-split-3-2">
     <!-- Left Details Column -->
     <div class="card-panel">
         <!-- Transparent Score Explanation Section -->
-        <div style="margin-bottom: 2rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+        <div id="match-breakdown" style="margin-bottom: 2rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
                 <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fa-solid fa-calculator" style="color: var(--primary);"></i> Why is your match score {{ job.get('combined_score', 80) }}%?
