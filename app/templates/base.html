@@ -27,18 +27,18 @@
         <aside class="app-sidebar">
             <div class="sidebar-header">
                 <div class="brand-logo-icon">
-                    <i class="fa-solid fa-bolt"></i>
+                    <i class="fa-solid fa-briefcase"></i>
                 </div>
                 <a href="{{ url_for('main.dashboard') }}" class="brand-title">Job<span>Snap</span></a>
             </div>
             
             <nav class="sidebar-nav">
                 <a href="{{ url_for('main.dashboard') }}" class="nav-item-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
-                    <i class="fa-regular fa-compass"></i>
+                    <i class="fa-solid fa-house"></i>
                     <span>Dashboard</span>
                 </a>
                 <a href="{{ url_for('resume.upload') }}" class="nav-item-link {% if request.endpoint in ['resume.upload', 'resume.resume_analysis'] %}active{% endif %}">
-                    <i class="fa-regular fa-file-lines"></i>
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
                     <span>Upload Resume</span>
                 </a>
                 <a href="{{ url_for('jobs.results') }}" class="nav-item-link {% if request.endpoint in ['jobs.results', 'jobs.job_detail'] %}active{% endif %}">
@@ -59,6 +59,18 @@
                 </a>
             </nav>
 
+            <!-- Sidebar Promo Card: Build your future -->
+            <div class="sidebar-promo-card">
+                <div class="promo-icon-circle">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <h5>Build your future</h5>
+                <p>Find the right opportunities with AI-powered matching.</p>
+                <a href="{{ url_for('jobs.results') }}" class="btn btn-upgrade-pill">
+                    Upgrade Plan <i class="fa-solid fa-arrow-right" style="font-size: 0.72rem; margin-left: 0.2rem;"></i>
+                </a>
+            </div>
+
             <div class="sidebar-footer">
                 <a href="{{ url_for('auth.logout') }}" class="nav-item-link sidebar-logout-link">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
@@ -72,28 +84,28 @@
 
         <div class="main-wrapper">
             <header class="app-topbar">
-                <div style="display: flex; align-items: center; gap: 1rem; flex: 1; max-width: 480px;">
+                <div style="display: flex; align-items: center; gap: 1rem; flex: 1; max-width: 460px;">
                     <button type="button" class="btn btn-outline btn-sm mobile-hamburger-btn" onclick="toggleMobileSidebar()" title="Toggle Navigation Menu">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <!-- Global Search Input -->
                     <form action="{{ url_for('jobs.results') }}" method="GET" class="topbar-search-form" style="width: 100%;">
                         <i class="fa-solid fa-magnifying-glass topbar-search-icon"></i>
-                        <input type="text" name="q" class="topbar-search-input" placeholder="Search jobs by role, skill, or company..." value="{{ request.args.get('q', '') }}">
+                        <input type="text" name="q" class="topbar-search-input" placeholder="Search for jobs..." value="{{ request.args.get('q', '') }}">
                     </form>
                 </div>
 
                 <div class="topbar-user">
-                    <a href="{{ url_for('resume.upload') }}" class="btn btn-primary btn-sm">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
+                    <a href="{{ url_for('resume.upload') }}" class="btn btn-dark-pill btn-sm">
+                        <i class="fa-solid fa-plus" style="font-size: 0.78rem;"></i> Upload Resume
                     </a>
-                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">
+                    <a href="{{ url_for('jobs.results') }}" class="btn btn-outline-pill btn-sm">
                         <i class="fa-solid fa-magnifying-glass"></i> Find Jobs
                     </a>
 
                     <!-- Notification Icon -->
                     <div class="topbar-notification-btn" title="Notifications">
-                        <i class="fa-regular fa-bell"></i>
+                        <i class="fa-solid fa-bell"></i>
                         <span class="notification-dot"></span>
                     </div>
 
@@ -103,7 +115,9 @@
                             {{ current_user.name[0] if current_user.name else 'U' }}
                         </div>
                         <div class="topbar-user-meta">
-                            <div class="user-name-text">{{ current_user.name }}</div>
+                            <div class="user-name-text">
+                                {{ current_user.name if current_user.name else 'User' }} <i class="fa-solid fa-chevron-down" style="font-size: 0.65rem; color: #94A3B8; margin-left: 0.2rem;"></i>
+                            </div>
                             <div class="user-name-sub">{{ current_user.email }}</div>
                         </div>
                     </a>

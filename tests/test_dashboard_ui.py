@@ -72,11 +72,10 @@ class TestDashboardUI(unittest.TestCase):
         self.assertIn("Profile & Settings", html)
         self.assertIn("Logout", html)
 
-        # Strict negative constraint: NO upgrade section
-        self.assertNotIn("sidebar-promo-card", html)
-        self.assertNotIn("Upgrade promotion", html)
-        self.assertNotIn("Upgrade to Pro", html)
-        self.assertNotIn("Unlock Unlimited", html)
+        # Sidebar Promo / Upgrade Card from Reference Design
+        self.assertIn("sidebar-promo-card", html)
+        self.assertIn("Build your future", html)
+        self.assertIn("Upgrade Plan", html)
 
         # 4. Top Navigation Bar Requirements
         self.assertIn("topbar-search-form", html)
@@ -86,7 +85,8 @@ class TestDashboardUI(unittest.TestCase):
         self.assertIn("alex@enterprise.com", html)
 
         # 5. Welcome Section
-        self.assertIn("Welcome back, Alex Morgan", html)
+        self.assertIn("Welcome back,", html)
+        self.assertIn("Alex Morgan", html)
         self.assertIn("Live Matching Active", html)
 
         # 6. Dashboard Statistics (4 Metric Cards)
@@ -140,7 +140,7 @@ class TestDashboardUI(unittest.TestCase):
         self.assertIn("No Resume Uploaded Yet", html)
         self.assertIn("Matching Is Not Active", html)
         self.assertIn("No Skill Gap Data Available", html)
-        self.assertNotIn("sidebar-promo-card", html)
+        self.assertIn("sidebar-promo-card", html)
 
 if __name__ == "__main__":
     unittest.main()

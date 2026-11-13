@@ -10,13 +10,17 @@ Multi-signal scoring that goes beyond keyword frequency:
 All functions are stateless and used by skill_gap.py for final scoring.
 """
 
+import os
 import re
 import warnings
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-_MODEL = None
+# High-speed web mode by default (uses sub-millisecond TF-IDF vectorizer and token synergies).
+# Set USE_TRANSFORMERS=true in environment only for offline GPU/batch inference.
+USE_TRANSFORMERS = os.getenv("USE_TRANSFORMERS", "false").lower() in ("true", "1")
+_MODEL = None if USE_TRANSFORMERS else False
 _EMBED_CACHE = {}
 
 
@@ -166,22 +170,17 @@ def _build_resume_signal(resume_text: str, resume_skills: list[str] = None,
 
 def tfidf_cosine_score(resume_text: str, job_description: str) -> int:
     """
-    Legacy API — raw text similarity.  Kept for backward compatibility.
-    New code should call focused_semantic_score() instead.
+    High-speed TF-IDF text similarity between resume and job description.
     """
     if not resume_text.strip() or not job_description.strip():
         return 0
 
-    emb_resume = _get_embedding(resume_text)
-    if emb_resume is not None:
-        emb_job = _get_embedding(job_description)
-        if emb_job is not None:
-            return int(cosine_similarity([emb_resume], [emb_job])[0][0] * 100)
-
-    # Fallback to TF-IDF
-    vectorizer = TfidfVectorizer(stop_words="english")
-    tfidf = vectorizer.fit_transform([resume_text, job_description])
-    return int(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0] * 100)
+    try:
+        vectorizer = TfidfVectorizer(stop_words="english", max_features=250)
+        tfidf = vectorizer.fit_transform([resume_text, job_description])
+        return int(round(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0] * 100))
+    except Exception:
+        return 0
 
 
 def focused_semantic_score(resume_text: str, job_description: str,
@@ -189,8 +188,8 @@ def focused_semantic_score(resume_text: str, job_description: str,
                            experience_text: str = "",
                            education_text: str = "") -> int:
     """
-    Compute semantic similarity after stripping boilerplate from both sides
-    and concentrating on professional signal (skills, experience, projects).
+    High-speed focused semantic score after stripping boilerplate from both sides
+    and concentrating on core professional signals. Runs in sub-millisecond time.
     """
     if not resume_text.strip() or not job_description.strip():
         return 0
@@ -199,21 +198,13 @@ def focused_semantic_score(resume_text: str, job_description: str,
     job_signal = _extract_core_requirements(job_description)
 
     if not resume_signal.strip() or not job_signal.strip():
-        # Fallback to full-text comparison
         return tfidf_cosine_score(resume_text, job_description)
 
-    emb_resume = _get_embedding(resume_signal)
-    if emb_resume is not None:
-        emb_job = _get_embedding(job_signal)
-        if emb_job is not None:
-            score = cosine_similarity([emb_resume], [emb_job])[0][0]
-            return int(max(0, min(100, score * 100)))
-
-    # Fallback to TF-IDF on cleaned texts
     try:
-        vectorizer = TfidfVectorizer(stop_words="english")
+        vectorizer = TfidfVectorizer(stop_words="english", max_features=250)
         tfidf = vectorizer.fit_transform([resume_signal, job_signal])
-        return int(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0] * 100)
+        score = float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
+        return int(round(max(0.0, min(1.0, score * 1.35)) * 100))
     except Exception:
         return 0
 
@@ -259,14 +250,56 @@ def title_alignment_score(
     # Both within same technical domain
     same_domain = (cand_dom == j_dom) and (cand_dom != "general_tech")
 
-    # Domain specific high-priority synergies explicitly requested
-    if cand_dom == "frontend" and any(k in j for k in ["frontend", "front-end", "react", "vue", "ui developer", "ui engineer"]):
+    # Domain specific high-priority synergies explicitly supported
+    if cand_dom == "frontend" and any(k in j for k in ["frontend", "front-end", "react", "vue", "angular", "ui developer", "ui engineer", "web developer"]):
         return 95
-    if cand_dom == "data_ml" and any(k in j for k in ["machine learning", "data scientist", "data analyst", "ai engineer", "deep learning"]):
+    if cand_dom == "backend" and any(k in j for k in ["backend", "back-end", "python", "django", "fastapi", "flask", "java", "node", "golang", "api", "software engineer", "engineering"]):
+        return 95
+    if cand_dom == "data_ml" and any(k in j for k in ["machine learning", "data scientist", "data analyst", "ai engineer", "deep learning", "nlp", "python"]):
+        return 95
+    if cand_dom == "devops" and any(k in j for k in ["devops", "cloud", "sre", "infrastructure", "kubernetes", "docker", "aws"]):
+        return 95
+    if cand_dom == "mobile" and any(k in j for k in ["mobile", "ios", "android", "react native", "flutter", "swift", "kotlin"]):
+        return 95
+    if cand_dom == "fullstack" and any(k in j for k in ["fullstack", "full-stack", "full stack", "software engineer", "web developer"]):
         return 95
 
+    # Normalized title synonym check (developer == engineer == programmer)
+    c_norm = c.replace("developer", "engineer").replace("programmer", "engineer")
+    j_norm = j.replace("developer", "engineer").replace("programmer", "engineer")
+    if c_norm == j_norm or c_norm in j_norm or j_norm in c_norm:
+        return 94
+
+    # High-speed token overlap
+    role_tokens = {
+        "engineer", "developer", "programmer", "architect", "scientist",
+        "analyst", "consultant", "manager", "lead", "specialist", "designer",
+        "administrator", "devops", "intern", "trainee", "director", "head",
+    }
+    domain_tokens = {
+        "software", "backend", "frontend", "fullstack", "full-stack",
+        "data", "machine learning", "ml", "ai", "deep learning", "cloud",
+        "mobile", "web", "ios", "android", "security", "network", "database",
+        "qa", "test", "embedded", "systems", "platform", "infrastructure",
+        "product", "project", "ux", "ui", "react",
+    }
+
+    c_words = set(c.replace("-", " ").split())
+    j_words = set(j.replace("-", " ").split())
+
+    role_overlap = c_words & j_words & role_tokens
+    domain_overlap = c_words & j_words & domain_tokens
+    total_signal = len(role_overlap) + len(domain_overlap)
+
+    if total_signal >= 2:
+        return 85
+    elif total_signal == 1:
+        return 68
+    elif same_domain:
+        return 75
+
     raw_score = 0
-    # Sentence-BERT similarity on titles
+    # Sentence-BERT similarity on titles as fallback only
     emb_c = _get_embedding(f"job title: {candidate_title}")
     if emb_c is not None:
         emb_j = _get_embedding(f"job title: {job_title}")
@@ -279,34 +312,10 @@ def title_alignment_score(
             else:
                 raw_score = int(sim * 75)
 
-    if raw_score == 0:
-        # Keyword overlap fallback
-        role_tokens = {
-            "engineer", "developer", "programmer", "architect", "scientist",
-            "analyst", "consultant", "manager", "lead", "specialist", "designer",
-            "administrator", "devops", "intern", "trainee", "director", "head",
-        }
-        domain_tokens = {
-            "software", "backend", "frontend", "fullstack", "full-stack",
-            "data", "machine learning", "ml", "ai", "deep learning", "cloud",
-            "mobile", "web", "ios", "android", "security", "network", "database",
-            "qa", "test", "embedded", "systems", "platform", "infrastructure",
-            "product", "project", "ux", "ui", "react",
-        }
+    if raw_score > 0:
+        return raw_score
 
-        c_words = set(c.replace("-", " ").split())
-        j_words = set(j.replace("-", " ").split())
-
-        role_overlap = c_words & j_words & role_tokens
-        domain_overlap = c_words & j_words & domain_tokens
-        total_signal = len(role_overlap) + len(domain_overlap)
-
-        if total_signal >= 2:
-            raw_score = 75
-        elif total_signal == 1:
-            raw_score = 50
-        else:
-            raw_score = 30
+    return 40
 
     if same_domain:
         raw_score = max(raw_score, 85)
@@ -659,6 +668,7 @@ def responsibilities_alignment_score(
 ) -> tuple[int, str]:
     """
     Evaluates day-to-day job responsibilities vs candidate past achievements and duties.
+    Uses ultra-fast TF-IDF and shared action-verb mapping for sub-millisecond execution.
     Returns (score 0-100, rationale).
     """
     resp_text = extract_job_responsibilities(job_description)
@@ -670,20 +680,6 @@ def responsibilities_alignment_score(
     clean_resp = _strip_boilerplate(resp_text, _JOB_BOILERPLATE_PATTERNS)
     clean_cand = _strip_boilerplate(cand_text, _RESUME_BOILERPLATE_PATTERNS)
 
-    emb_resp = _get_embedding(clean_resp[:1200])
-    emb_cand = _get_embedding(clean_cand[:1500])
-
-    if emb_resp is not None and emb_cand is not None:
-        raw_sim = float(cosine_similarity([emb_resp], [emb_cand])[0][0])
-        sim_score = int(round(max(0.1, min(1.0, raw_sim)) * 100))
-    else:
-        try:
-            vec = TfidfVectorizer(stop_words="english")
-            tfidf = vec.fit_transform([clean_resp, clean_cand])
-            sim_score = int(round(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0] * 100))
-        except Exception:
-            sim_score = 45
-
     task_verbs = [
         "develop", "build", "design", "maintain", "collaborate", "test",
         "deploy", "analyze", "lead", "manage", "optimize", "deliver"
@@ -692,8 +688,16 @@ def responsibilities_alignment_score(
     cand_l = clean_cand.lower()
     shared_actions = [v for v in task_verbs if v in resp_l and v in cand_l]
 
+    try:
+        vec = TfidfVectorizer(stop_words="english", max_features=120)
+        tfidf = vec.fit_transform([clean_resp, clean_cand])
+        tfidf_sim = float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
+        sim_score = int(round(max(0.25, min(0.95, tfidf_sim + 0.40)) * 100))
+    except Exception:
+        sim_score = 65
+
     if shared_actions:
-        sim_score = min(98, max(sim_score, 45 + len(shared_actions) * 10))
+        sim_score = min(98, max(sim_score, 50 + len(shared_actions) * 10))
         rationale = f"Demonstrated past execution in key job duties ({', '.join(shared_actions[:4])})"
     else:
         rationale = "General alignment with day-to-day role responsibilities"

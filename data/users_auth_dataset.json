@@ -1,7 +1,7 @@
 {
   "metadata": {
     "dataset_name": "JobSnap User Authentication & Login Activity Dataset",
-    "generated_at": "2026-11-13T07:07:51.542997",
+    "generated_at": "2026-11-13T07:34:36.965967",
     "total_users": 2,
     "storage_type": "email_indexed_hashmap",
     "hash_algorithm": "werkzeug_scrypt_pbkdf2_salted"
@@ -11,12 +11,12 @@
       "user_id": 1,
       "name": "Alex Morgan",
       "email": "alex@enterprise.com",
-      "password_hash": "scrypt:32768:8:1$iPLKqFVEXE4un96R$0eb6c39bb4fe40a7a60699b1b9fbcaa0a856d9eab0a00c423e7dd86145d5015fb6fe61728998b9af880fe46db995cda3b5ff0760fd5a3435fc79f1848ebccd88",
+      "password_hash": "scrypt:32768:8:1$LDWU8Lq5vOnWwun0$4f0bf4bc611d25368f60e0b1fb928726952fd9806fef07340095ebaedf08bea5e205d42982ec0bd50ce714878c464dd5cd5a84eeaf0af03bfd9461404b7aa56f",
       "status": "active",
-      "signup_date": "2026-11-13 07:07:41",
-      "created_at_iso": "2026-11-13T07:07:41.980269",
-      "last_login_date": "2026-11-13 07:07:42",
-      "last_login_iso": "2026-11-13T07:07:42.093315",
+      "signup_date": "2026-11-13 07:34:34",
+      "created_at_iso": "2026-11-13T07:34:34.509112",
+      "last_login_date": "2026-11-13 07:34:34",
+      "last_login_iso": "2026-11-13T07:34:34.668496",
       "last_login_ip": "127.0.0.1",
       "total_logins": 1,
       "login_history": [
@@ -28,8 +28,8 @@
           "ip_address": "127.0.0.1",
           "user_agent": "Werkzeug/3.1.8",
           "failure_reason": "",
-          "timestamp": "2026-11-13T07:07:42.093315",
-          "formatted_date": "2026-11-13 07:07:42"
+          "timestamp": "2026-11-13T07:34:34.668496",
+          "formatted_date": "2026-11-13 07:34:34"
         }
       ]
     },
@@ -37,12 +37,12 @@
       "user_id": 2,
       "name": "Elena Rostova",
       "email": "elena@example.com",
-      "password_hash": "scrypt:32768:8:1$1krq4zn9Ef5MrahL$14fe0e4c3a4da2e8faeac6097675f503d93e9b4a5b3b4365b60e48600a22092631c296c2a0629718cb5725f7f06c0108125ae91b7aff12513bd3629213d4ca53",
+      "password_hash": "scrypt:32768:8:1$IWPIGABmhygDSWWD$37ac5180175135626adb3b7ecba3b08e2b6b7bb72def3132d2e3b1c412e8e441e0390a0c770180d65608bf2e05aa987348ed4e6f96964b96d94b1b18a565bae0",
       "status": "active",
-      "signup_date": "2026-11-13 07:07:51",
-      "created_at_iso": "2026-11-13T07:07:51.390931",
-      "last_login_date": "2026-11-13 07:07:51",
-      "last_login_iso": "2026-11-13T07:07:51.529554",
+      "signup_date": "2026-11-13 07:34:36",
+      "created_at_iso": "2026-11-13T07:34:36.825329",
+      "last_login_date": "2026-11-13 07:34:36",
+      "last_login_iso": "2026-11-13T07:34:36.953323",
       "last_login_ip": "127.0.0.1",
       "total_logins": 1,
       "login_history": [
@@ -54,8 +54,8 @@
           "ip_address": "127.0.0.1",
           "user_agent": "Werkzeug/3.1.8",
           "failure_reason": "",
-          "timestamp": "2026-11-13T07:07:51.529554",
-          "formatted_date": "2026-11-13 07:07:51"
+          "timestamp": "2026-11-13T07:34:36.953323",
+          "formatted_date": "2026-11-13 07:34:36"
         }
       ]
     }

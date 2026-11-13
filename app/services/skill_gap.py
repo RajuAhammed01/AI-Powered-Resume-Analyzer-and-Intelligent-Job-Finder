@@ -427,32 +427,39 @@ def analyze_job_skill_gap(
     else:
         skill_coverage_pct = 40
 
-    # B) Required Qualifications & Education (15%)
-    qualifications_pct = education_qualification_score(
-        resume_text, job_description, education_text=education_text
-    ) if (resume_text and job_description) else (70 if is_compatible else 20)
+    # Fast-path for incompatible career categories: bypass expensive neural calculations
+    if not is_compatible:
+        qualifications_pct = 20
+        experience_pct = 20
+        projects_pct, projects_rationale = 15, "No domain project alignment."
+        responsibilities_pct, responsibilities_rationale = 20, "Unrelated job duties."
+    else:
+        # B) Required Qualifications & Education (15%)
+        qualifications_pct = education_qualification_score(
+            resume_text, job_description, education_text=education_text
+        ) if (resume_text and job_description) else 70
 
-    # C) Professional Experience Relevance (15%)
-    experience_pct = experience_relevance_score(
-        resume_text, job_description, experience_text=experience_text
-    ) if (resume_text and job_description) else (70 if is_compatible else 20)
+        # C) Professional Experience Relevance (15%)
+        experience_pct = experience_relevance_score(
+            resume_text, job_description, experience_text=experience_text
+        ) if (resume_text and job_description) else 70
 
-    # D) Practical Projects & Portfolio Implementation (15%)
-    projects_pct, projects_rationale = project_portfolio_score(
-        resume_text=resume_text,
-        job_description=job_description,
-        projects_text=projects_text,
-        job_skills=job_skills_clean,
-        is_internship_seeking=is_internship_seeking,
-    ) if (resume_text and job_description) else ((70, "Relevant technical skills in candidate profile.") if is_compatible else (15, "No domain project alignment."))
+        # D) Practical Projects & Portfolio Implementation (15%)
+        projects_pct, projects_rationale = project_portfolio_score(
+            resume_text=resume_text,
+            job_description=job_description,
+            projects_text=projects_text,
+            job_skills=job_skills_clean,
+            is_internship_seeking=is_internship_seeking,
+        ) if (resume_text and job_description) else (70, "Relevant technical skills in candidate profile.")
 
-    # E) Job Responsibilities & Day-to-Day Tasks (10%)
-    responsibilities_pct, responsibilities_rationale = responsibilities_alignment_score(
-        resume_text=resume_text,
-        job_description=job_description,
-        experience_text=experience_text,
-        projects_text=projects_text,
-    ) if (resume_text and job_description) else ((70, "Role duties align with declared candidate profile.") if is_compatible else (20, "Unrelated job duties."))
+        # E) Job Responsibilities & Day-to-Day Tasks (10%)
+        responsibilities_pct, responsibilities_rationale = responsibilities_alignment_score(
+            resume_text=resume_text,
+            job_description=job_description,
+            experience_text=experience_text,
+            projects_text=projects_text,
+        ) if (resume_text and job_description) else (70, "Role duties align with declared candidate profile.")
 
     # F) Career Relevance & Domain Compatibility (10%)
     title_domain_pct = title_alignment_score(

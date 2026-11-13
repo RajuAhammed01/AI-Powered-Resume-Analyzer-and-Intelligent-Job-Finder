@@ -183,13 +183,73 @@ body {
 }
 
 .nav-item-link.active {
-  color: var(--sidebar-text);
-  background-color: var(--bg-sidebar-active);
+  color: #FFFFFF;
+  background-color: #1A6DF7;
   font-weight: 600;
+  border-radius: 10px;
 }
 
 .nav-item-link.active i {
-  color: var(--sidebar-text);
+  color: #FFFFFF;
+}
+
+/* Sidebar Promo Card: Build your future */
+.sidebar-promo-card {
+  margin: 1rem 0.85rem;
+  padding: 1.15rem;
+  background: #112036;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  text-align: left;
+}
+
+.promo-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(26, 109, 247, 0.2);
+  color: #60A5FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-promo-card h5 {
+  color: #FFFFFF;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  font-family: var(--font-heading);
+}
+
+.sidebar-promo-card p {
+  color: #94A3B8;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin-bottom: 0.85rem;
+}
+
+.btn-upgrade-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #244F83;
+  color: #FFFFFF;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: var(--transition);
+}
+
+.btn-upgrade-pill:hover {
+  background: #1A6DF7;
+  color: #FFFFFF;
 }
 
 .sidebar-footer {
@@ -199,16 +259,20 @@ body {
 }
 
 .sidebar-logout-link {
-  color: var(--sidebar-text-muted);
+  color: #F87171 !important;
+}
+
+.sidebar-logout-link i {
+  color: #F87171 !important;
 }
 
 .sidebar-logout-link:hover {
-  color: #FFA5A8;
-  background-color: var(--bg-sidebar-hover);
+  color: #EF4444 !important;
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
 .sidebar-logout-link:hover i {
-  color: #FFA5A8;
+  color: #EF4444 !important;
 }
 
 /* Main Content Wrapper (With Sidebar) */
@@ -249,13 +313,100 @@ body {
   pointer-events: none;
 }
 
+.btn-dark-pill {
+  background-color: #0E1B2E;
+  color: #FFFFFF;
+  border-radius: var(--radius-pill);
+  border: 1px solid #0E1B2E;
+  padding: 0.42rem 1.15rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: var(--transition);
+}
+
+.btn-dark-pill:hover {
+  background-color: #1A6DF7;
+  border-color: #1A6DF7;
+  color: #FFFFFF;
+}
+
+.btn-outline-pill {
+  background-color: #FFFFFF;
+  color: #0E1B2E;
+  border-radius: var(--radius-pill);
+  border: 1px solid #CBD5E1;
+  padding: 0.42rem 1.15rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: var(--transition);
+}
+
+.btn-outline-pill:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+  color: #1A6DF7;
+}
+
+/* Welcome Hero Card with Soft Light Blue Wave */
+.hero-welcome-card {
+  background: linear-gradient(135deg, #F0F6FF 0%, #E8F2FD 100%);
+  border: 1px solid #DCE8F8;
+  border-radius: 18px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-welcome-card::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  height: 100%;
+  background: radial-gradient(circle at 100% 100%, rgba(219, 234, 254, 0.45) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.welcome-underline {
+  width: 44px;
+  height: 3px;
+  background: #1A6DF7;
+  border-radius: 2px;
+  margin-top: 0.65rem;
+}
+
+.badge-pdf {
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .topbar-search-input {
   width: 100%;
-  height: 38px;
-  padding: 0 1rem 0 2.35rem;
+  height: 40px;
+  padding: 0 1rem 0 2.4rem;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-subtle);
+  border-radius: var(--radius-pill);
+  background-color: #F8FAFC;
   color: var(--text-main);
   font-family: var(--font-body);
   font-size: 0.88rem;

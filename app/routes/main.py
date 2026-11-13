@@ -1,3 +1,4 @@
+import time
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
@@ -18,6 +19,8 @@ from app.services.skill_gap import analyze_job_skill_gap
 
 main_bp = Blueprint("main", __name__)
 
+USER_DASHBOARD_CACHE = {}
+
 
 @main_bp.route("/")
 def index():
@@ -37,129 +40,151 @@ def dashboard():
 
     candidate_profile = None
     if resume:
-        pref = JobPreference.query.filter_by(user_id=current_user.id).first()
-        resume_skills = resume.skills or []
-        resume_text = resume.extracted_text or ""
-        candidate_profile = detect_candidate_profile(resume_skills, resume_text, current_user.title_role or "")
-        candidate_domain = candidate_profile["primary_domain"]
-        candidate_title = current_user.title_role if (current_user.title_role and current_user.title_role != "Job Seeker") else candidate_profile["recommended_role"]
-
-        seniority_intent = detect_candidate_seniority_intent(
-            resume_text=resume_text,
-            declared_title=current_user.title_role or "",
-            experience_level_pref=pref.experience_level if pref else "",
-            job_type_pref=pref.job_type if pref else "",
-            education_text=resume.education or "",
-        )
-        is_internship_seeking = seniority_intent["is_internship_seeking"]
-        is_entry_level_seeking = seniority_intent["is_entry_level_seeking"]
-
-        if pref and pref.target_role and pref.target_role not in ["Software Engineer", "Machine Learning Engineer, Data Scientist"]:
-            target_role = pref.target_role
+        cache_entry = USER_DASHBOARD_CACHE.get(current_user.id)
+        if (
+            cache_entry
+            and cache_entry.get("resume_id") == resume.id
+            and (time.time() - cache_entry.get("timestamp", 0) < 1800)
+            and cache_entry.get("recommended_jobs")
+        ):
+            recommended_jobs = cache_entry["recommended_jobs"]
+            top_match_score = cache_entry["top_match_score"]
+            skill_gap_summary = cache_entry["skill_gap_summary"]
+            candidate_profile = cache_entry["candidate_profile"]
         else:
-            target_role = candidate_profile["recommended_role"]
+            pref = JobPreference.query.filter_by(user_id=current_user.id).first()
+            resume_skills = resume.skills or []
+            resume_text = resume.extracted_text or ""
+            candidate_profile = detect_candidate_profile(resume_skills, resume_text, current_user.title_role or "")
+            candidate_domain = candidate_profile["primary_domain"]
+            candidate_title = current_user.title_role if (current_user.title_role and current_user.title_role != "Job Seeker") else candidate_profile["recommended_role"]
 
-        location = (pref.location if pref else None) or "Remote"
-
-        raw_jobs = fetch_jobs(target_role, location)
-        processed_jobs = []
-        for index, job_item in enumerate(raw_jobs):
-            job = dict(job_item)
-            description = job.get("job_description", "")
-            extracted_j = extract_skills(description)
-            provider_tags = job.get("job_skills") or []
-            combined_j = sorted(list(set(extracted_j + provider_tags)))
-            job["job_skills"] = combined_j
-
-            # Transparent, multi-signal, domain-aligned skill gap analysis
-            analysis = analyze_job_skill_gap(
-                resume_skills=resume_skills,
-                job_skills=combined_j,
+            seniority_intent = detect_candidate_seniority_intent(
                 resume_text=resume_text,
-                job_description=description,
-                candidate_title=candidate_title,
-                job_title=job.get("job_title", ""),
-                experience_text=resume.experience or "",
+                declared_title=current_user.title_role or "",
+                experience_level_pref=pref.experience_level if pref else "",
+                job_type_pref=pref.job_type if pref else "",
                 education_text=resume.education or "",
-                candidate_domain=candidate_domain,
-                is_internship_seeking=is_internship_seeking,
-                employment_type=job.get("job_employment_type", ""),
             )
-            job["match_score"] = analysis["skill_coverage_score"]
-            job["cosine_score"] = analysis["semantic_score"]
-            job["title_score"] = analysis["title_score"]
-            job["experience_score"] = analysis["experience_score"]
-            job["education_score"] = analysis["education_score"]
-            job["combined_score"] = analysis["final_score"]
-            job["is_unrelated_domain"] = analysis["is_unrelated_domain"]
-            job["domain_info"] = analysis["domain_info"]
-            job["matched_skills"] = analysis["matched_skills"]
-            job["partial_skills"] = analysis["partial_skills"]
-            job["missing_skills"] = analysis["missing_skills"]
-            job["score_explanation"] = analysis["summary_explanation"]
-            job["actionable_advice"] = analysis["actionable_advice"]
-            job["score_breakdown"] = analysis["score_breakdown"]
-            job["skill_points"] = analysis["skill_points"]
-            job["seniority_level"] = analysis.get("seniority_level", "experienced")
-            job["is_internship"] = analysis.get("is_internship", False)
-            job["is_entry_level"] = analysis.get("is_entry_level", False)
-            job["is_experienced"] = analysis.get("is_experienced", True)
-            job["display_seniority"] = analysis.get("display_seniority", "Experienced")
-            job["badge_color"] = analysis.get("badge_color", "#1e40af")
-            job["badge_bg"] = analysis.get("badge_bg", "#eff6ff")
-            job["qualifications_score"] = analysis.get("qualifications_score", 70)
-            job["projects_score"] = analysis.get("projects_score", 70)
-            job["responsibilities_score"] = analysis.get("responsibilities_score", 70)
-            job["strong_skills"] = analysis.get("strong_skills", [])
-            job["missing_skills_detailed"] = analysis.get("missing_skills_detailed", [])
-            job["detailed_diagnostic"] = analysis.get("detailed_diagnostic", {})
-            processed_jobs.append(job)
+            is_internship_seeking = seniority_intent["is_internship_seeking"]
+            is_entry_level_seeking = seniority_intent["is_entry_level_seeking"]
 
-        # Filter out unrelated category jobs to ensure top recommended jobs are genuinely suitable
-        compatible_jobs = [j for j in processed_jobs if not j.get("is_unrelated_domain", False)]
-        display_dashboard_jobs = compatible_jobs if compatible_jobs else processed_jobs
-        display_dashboard_jobs.sort(
-            key=lambda j: get_job_ordering_tuple(
-                j,
-                is_internship_seeking=is_internship_seeking,
-                is_entry_level_seeking=is_entry_level_seeking,
+            if pref and pref.target_role and pref.target_role not in ["Software Engineer", "Machine Learning Engineer, Data Scientist"]:
+                target_role = pref.target_role
+            else:
+                target_role = candidate_profile["recommended_role"]
+
+            location = (pref.location if pref else None) or "Remote"
+
+            raw_jobs = fetch_jobs(target_role, location)
+            processed_jobs = []
+            # Process up to 15 prioritized jobs for ultra-fast dashboard generation
+            for index, job_item in enumerate(raw_jobs[:15]):
+                job = dict(job_item)
+                description = job.get("job_description", "")
+                extracted_j = extract_skills(description)
+                provider_tags = job.get("job_skills") or []
+                combined_j = sorted(list(set(extracted_j + provider_tags)))
+                job["job_skills"] = combined_j
+
+                # Transparent, multi-signal, domain-aligned skill gap analysis
+                analysis = analyze_job_skill_gap(
+                    resume_skills=resume_skills,
+                    job_skills=combined_j,
+                    resume_text=resume_text,
+                    job_description=description,
+                    candidate_title=candidate_title,
+                    job_title=job.get("job_title", ""),
+                    experience_text=resume.experience or "",
+                    education_text=resume.education or "",
+                    candidate_domain=candidate_domain,
+                    is_internship_seeking=is_internship_seeking,
+                    employment_type=job.get("job_employment_type", ""),
+                )
+                job["match_score"] = analysis["skill_coverage_score"]
+                job["cosine_score"] = analysis["semantic_score"]
+                job["title_score"] = analysis["title_score"]
+                job["experience_score"] = analysis["experience_score"]
+                job["education_score"] = analysis["education_score"]
+                job["combined_score"] = analysis["final_score"]
+                job["is_unrelated_domain"] = analysis["is_unrelated_domain"]
+                job["domain_info"] = analysis["domain_info"]
+                job["matched_skills"] = analysis["matched_skills"]
+                job["partial_skills"] = analysis["partial_skills"]
+                job["missing_skills"] = analysis["missing_skills"]
+                job["score_explanation"] = analysis["summary_explanation"]
+                job["actionable_advice"] = analysis["actionable_advice"]
+                job["score_breakdown"] = analysis["score_breakdown"]
+                job["skill_points"] = analysis["skill_points"]
+                job["seniority_level"] = analysis.get("seniority_level", "experienced")
+                job["is_internship"] = analysis.get("is_internship", False)
+                job["is_entry_level"] = analysis.get("is_entry_level", False)
+                job["is_experienced"] = analysis.get("is_experienced", True)
+                job["display_seniority"] = analysis.get("display_seniority", "Experienced")
+                job["badge_color"] = analysis.get("badge_color", "#1e40af")
+                job["badge_bg"] = analysis.get("badge_bg", "#eff6ff")
+                job["qualifications_score"] = analysis.get("qualifications_score", 70)
+                job["projects_score"] = analysis.get("projects_score", 70)
+                job["responsibilities_score"] = analysis.get("responsibilities_score", 70)
+                job["strong_skills"] = analysis.get("strong_skills", [])
+                job["missing_skills_detailed"] = analysis.get("missing_skills_detailed", [])
+                job["detailed_diagnostic"] = analysis.get("detailed_diagnostic", {})
+                processed_jobs.append(job)
+
+            # Filter out unrelated category jobs to ensure top recommended jobs are genuinely suitable
+            compatible_jobs = [j for j in processed_jobs if not j.get("is_unrelated_domain", False)]
+            display_dashboard_jobs = compatible_jobs if compatible_jobs else processed_jobs
+            display_dashboard_jobs.sort(
+                key=lambda j: get_job_ordering_tuple(
+                    j,
+                    is_internship_seeking=is_internship_seeking,
+                    is_entry_level_seeking=is_entry_level_seeking,
+                )
             )
-        )
 
-        # Re-assign cache_id strictly AFTER sorting and ensure all jobs have valid job_ids and registry entries
-        for idx, job in enumerate(display_dashboard_jobs):
-            job["cache_id"] = idx
-            if not job.get("job_id"):
-                job["job_id"] = generate_job_id(job)
-            GLOBAL_JOBS_REGISTRY[job["job_id"]] = job
+            # Re-assign cache_id strictly AFTER sorting and ensure all jobs have valid job_ids and registry entries
+            for idx, job in enumerate(display_dashboard_jobs):
+                job["cache_id"] = idx
+                if not job.get("job_id"):
+                    job["job_id"] = generate_job_id(job)
+                GLOBAL_JOBS_REGISTRY[job["job_id"]] = job
 
-        USER_JOBS_CACHE[current_user.id] = display_dashboard_jobs[:25]
-        recommended_jobs = display_dashboard_jobs[:3]
+            USER_JOBS_CACHE[current_user.id] = display_dashboard_jobs[:25]
+            recommended_jobs = display_dashboard_jobs[:3]
 
-        if recommended_jobs:
-            top_match_score = recommended_jobs[0]["combined_score"]
+            if recommended_jobs:
+                top_match_score = recommended_jobs[0]["combined_score"]
 
-        # Aggregate missing skills from actual live recommended jobs
-        missing_skills_map = {}
-        sample_jobs = processed_jobs[:10]
-        for j in sample_jobs:
-            for s in j.get("missing_skills", []):
-                missing_skills_map[s] = missing_skills_map.get(s, 0) + 1
+            # Aggregate missing skills from actual live recommended jobs
+            missing_skills_map = {}
+            sample_jobs = processed_jobs[:10]
+            for j in sample_jobs:
+                for s in j.get("missing_skills", []):
+                    missing_skills_map[s] = missing_skills_map.get(s, 0) + 1
 
-        top_missing_sorted = sorted(missing_skills_map.items(), key=lambda x: x[1], reverse=True)[:5]
-        ref_count = max(1, len(sample_jobs))
-        for idx, (skill_name, count) in enumerate(top_missing_sorted):
-            demand_pct = max(35, min(95, int(round((count / ref_count) * 100))))
-            level = "High demand" if demand_pct >= 50 else "Medium demand"
-            color = "#ef4444" if demand_pct >= 50 else "#f59e0b"
-            skill_gap_summary.append({
-                "skill": skill_name,
-                "demand": demand_pct,
-                "level": level,
-                "color": color,
-                "count": count,
-                "total": ref_count,
-            })
+            top_missing_sorted = sorted(missing_skills_map.items(), key=lambda x: x[1], reverse=True)[:5]
+            ref_count = max(1, len(sample_jobs))
+            for idx, (skill_name, count) in enumerate(top_missing_sorted):
+                demand_pct = max(35, min(95, int(round((count / ref_count) * 100))))
+                level = "High demand" if demand_pct >= 50 else "Medium demand"
+                color = "#ef4444" if demand_pct >= 50 else "#f59e0b"
+                skill_gap_summary.append({
+                    "skill": skill_name,
+                    "demand": demand_pct,
+                    "level": level,
+                    "color": color,
+                    "count": count,
+                    "total": ref_count,
+                })
+
+            USER_DASHBOARD_CACHE[current_user.id] = {
+                "recommended_jobs": recommended_jobs,
+                "top_match_score": top_match_score,
+                "skill_gap_summary": skill_gap_summary,
+                "candidate_profile": candidate_profile,
+                "resume_id": resume.id,
+                "timestamp": time.time(),
+            }
 
     pipeline_stats = {
         "saved": len([j for j in saved_jobs if (j.status or "Saved").lower() == "saved"]),

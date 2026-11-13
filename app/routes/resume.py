@@ -89,6 +89,12 @@ def upload():
 
             db.session.commit()
 
+            # Invalidate user cache to ensure fresh matches for the new CV
+            from app.routes.main import USER_DASHBOARD_CACHE
+            from app.routes.jobs import USER_JOBS_CACHE
+            USER_DASHBOARD_CACHE.pop(current_user.id, None)
+            USER_JOBS_CACHE.pop(current_user.id, None)
+
             flash("Resume uploaded and analyzed successfully! Verified skills extracted.")
             return redirect(url_for("resume.resume_analysis", id=resume.id))
         except Exception as e:

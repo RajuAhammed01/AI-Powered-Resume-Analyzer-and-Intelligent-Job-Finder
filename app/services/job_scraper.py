@@ -156,7 +156,7 @@ def scrape_remotive(role: str = "", limit: int = 25) -> list[dict]:
     try:
         search_param = _build_remotive_search_param(role)
         url = f"https://remotive.com/api/remote-jobs?search={urllib.parse.quote(search_param)}&limit={max(30, limit)}"
-        response = requests.get(url, headers=HEADERS, timeout=7)
+        response = requests.get(url, headers=HEADERS, timeout=2.5)
         if not response.ok:
             return jobs
 
@@ -211,7 +211,7 @@ def scrape_arbeitnow(role: str = "", limit: int = 25) -> list[dict]:
     jobs = []
     try:
         url = "https://www.arbeitnow.com/api/job-board-api"
-        response = requests.get(url, headers=HEADERS, timeout=7)
+        response = requests.get(url, headers=HEADERS, timeout=2.5)
         if not response.ok:
             return jobs
 
@@ -269,7 +269,7 @@ def scrape_remoteok(role: str = "", limit: int = 25) -> list[dict]:
     jobs = []
     try:
         url = "https://remoteok.com/api"
-        response = requests.get(url, headers=HEADERS, timeout=7)
+        response = requests.get(url, headers=HEADERS, timeout=2.5)
         if not response.ok:
             return jobs
 
@@ -345,7 +345,7 @@ def scrape_jobicy(role: str = "", limit: int = 20) -> list[dict]:
             tag = discriminating[0] if discriminating else "dev"
 
         url = f"https://jobicy.com/api/v2/remote-jobs?count={limit}&tag={urllib.parse.quote(tag)}" if tag else f"https://jobicy.com/api/v2/remote-jobs?count={limit}"
-        response = requests.get(url, headers=HEADERS, timeout=7)
+        response = requests.get(url, headers=HEADERS, timeout=2.5)
         if not response.ok:
             return jobs
 

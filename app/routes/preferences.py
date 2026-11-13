@@ -46,6 +46,13 @@ def preferences():
             pref.preferred_skills = json.dumps(skills_list)
 
         db.session.commit()
+
+        # Invalidate cached jobs and dashboard to compute fresh matches with updated preferences
+        from app.routes.main import USER_DASHBOARD_CACHE
+        from app.routes.jobs import USER_JOBS_CACHE
+        USER_DASHBOARD_CACHE.pop(current_user.id, None)
+        USER_JOBS_CACHE.pop(current_user.id, None)
+
         flash("Job preferences saved successfully.")
         return redirect(url_for("jobs.results"))
 
