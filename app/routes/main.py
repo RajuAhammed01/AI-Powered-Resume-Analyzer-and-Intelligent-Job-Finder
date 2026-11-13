@@ -51,6 +51,12 @@ def dashboard():
             top_match_score = cache_entry["top_match_score"]
             skill_gap_summary = cache_entry["skill_gap_summary"]
             candidate_profile = cache_entry["candidate_profile"]
+
+            # Re-register cached recommended jobs so 'Apply Now' clicks never encounter 'cant find any job'
+            USER_JOBS_CACHE[current_user.id] = recommended_jobs
+            for rj in recommended_jobs:
+                if rj.get("job_id"):
+                    GLOBAL_JOBS_REGISTRY[rj["job_id"]] = rj
         else:
             pref = JobPreference.query.filter_by(user_id=current_user.id).first()
             resume_skills = resume.skills or []

@@ -62,7 +62,7 @@
             </span>
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
                 <!-- Primary Direct Apply Button -->
-                <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', index)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-pill" id="primaryApplyBtn">
+                <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', index)) }}?direct_url={{ job.job_apply_link|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-pill" id="primaryApplyBtn">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply on {{ job.get('source', 'Original Portal') }}
                 </a>
 

@@ -196,11 +196,17 @@ def apply_redirect(index):
     Never redirects users to another job or unrelated listing.
     """
     job = find_job_by_identifier(current_user.id, index, USER_JOBS_CACHE)
+    direct_url = request.args.get("direct_url", "").strip()
+
+    if not job and direct_url and is_valid_apply_url(direct_url):
+        apply_url = normalize_apply_url(direct_url)
+        return redirect(apply_url)
+
     if not job:
         flash("The selected job opening could not be found or your session has expired. Please refresh your recommendations.")
         return redirect(url_for("jobs.results"))
 
-    raw_apply_url = job.get("job_apply_link", "").strip()
+    raw_apply_url = job.get("job_apply_link", "").strip() or direct_url
     job_title = job.get("job_title", "").strip()
     company = (job.get("employer_name") or job.get("company", "")).strip()
     location = (job.get("job_city") or job.get("location", "Remote")).strip()

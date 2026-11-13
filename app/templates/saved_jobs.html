@@ -141,7 +141,7 @@
                 </button>
             </form>
 
-            <a href="{{ url_for('jobs.apply_redirect', index=job.job_id or job.id) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm btn-pill">
+            <a href="{{ url_for('jobs.apply_redirect', index=job.job_id or job.id) }}?direct_url={{ job.apply_link|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm btn-pill">
                 {% if job_status_lower == 'applied' %}
                     View Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 {% else %}

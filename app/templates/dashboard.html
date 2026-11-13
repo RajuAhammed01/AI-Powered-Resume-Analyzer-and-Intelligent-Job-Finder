@@ -382,7 +382,7 @@
                                 {% endfor %}
                             </div>
 
-                            <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', job.cache_id)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-dark-pill btn-sm">
+                            <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', job.cache_id)) }}?direct_url={{ job.job_apply_link|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-dark-pill btn-sm">
                                 Apply Now <i class="fa-solid fa-arrow-right" style="font-size: 0.72rem; margin-left: 0.25rem;"></i>
                             </a>
                         </div>

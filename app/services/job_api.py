@@ -169,7 +169,32 @@ def fetch_jobs(role: str = "", location: str = "Remote", source: str = "all") ->
 
     raw_jobs = []
 
-    # 2. Add relevant high-quality seed jobs for instant responsiveness
+    # 2. Query Real-Time Web Providers for authentic live jobs with active direct application links
+    live_scraped = []
+    try:
+        if clean_source == "remotive":
+            live_scraped = scrape_remotive(clean_role, limit=20)
+        elif clean_source == "arbeitnow":
+            live_scraped = scrape_arbeitnow(clean_role, limit=20)
+        elif clean_source == "remoteok":
+            live_scraped = scrape_remoteok(clean_role, limit=20)
+        elif clean_source == "jobicy":
+            live_scraped = scrape_jobicy(clean_role, limit=20)
+        else:
+            live_scraped = scrape_live_jobs(role=clean_role, location=clean_loc, limit=25)
+    except Exception as e:
+        logger.warning(f"Live scraper fetch error: {e}")
+
+    raw_jobs.extend(live_scraped)
+
+    # 3. Check configured official APIs (Adzuna & JSearch) if credentials present
+    if clean_source in ["all", "adzuna"]:
+        raw_jobs.extend(fetch_adzuna_jobs(clean_role, clean_loc, limit=10))
+
+    if clean_source in ["all", "jsearch"]:
+        raw_jobs.extend(fetch_jsearch_jobs(clean_role, clean_loc, limit=10))
+
+    # 4. Supplement with pre-verified authentic live tech jobs to guarantee instant zero-wait availability
     seed_jobs = load_seed_jobs()
     role_tokens = [t.lower() for t in clean_role.split() if len(t) > 2]
     matching_seeds = []
@@ -182,34 +207,11 @@ def fetch_jobs(role: str = "", location: str = "Remote", source: str = "all") ->
         else:
             other_seeds.append(job_copy)
 
-    # Prioritize matching career seeds
-    raw_jobs.extend(matching_seeds)
-    if len(raw_jobs) < 5:
-        raw_jobs.extend(other_seeds[:5])
-
-    # 3. Check configured official APIs (Adzuna & JSearch)
-    if clean_source in ["all", "adzuna"]:
-        raw_jobs.extend(fetch_adzuna_jobs(clean_role, clean_loc, limit=10))
-
-    if clean_source in ["all", "jsearch"]:
-        raw_jobs.extend(fetch_jsearch_jobs(clean_role, clean_loc, limit=10))
-
-    # 4. Query Real-Time Web Providers based on requested source
-    try:
-        if clean_source == "remotive":
-            raw_jobs.extend(scrape_remotive(clean_role, limit=20))
-        elif clean_source == "arbeitnow":
-            raw_jobs.extend(scrape_arbeitnow(clean_role, limit=20))
-        elif clean_source == "remoteok":
-            raw_jobs.extend(scrape_remoteok(clean_role, limit=20))
-        elif clean_source == "jobicy":
-            raw_jobs.extend(scrape_jobicy(clean_role, limit=20))
-        else:
-            # Multi-source scraper
-            scraped = scrape_live_jobs(role=clean_role, location=clean_loc, limit=25)
-            raw_jobs.extend(scraped)
-    except Exception as e:
-        logger.warning(f"Live scraper fallback triggered: {e}")
+    # Supplement if live scraper returned few results or during network downtime
+    if len(raw_jobs) < 15:
+        raw_jobs.extend(matching_seeds)
+    if len(raw_jobs) < 10:
+        raw_jobs.extend(other_seeds[:10])
 
     # 5. Deduplicate and ensure all jobs have valid application links
     final_jobs = []

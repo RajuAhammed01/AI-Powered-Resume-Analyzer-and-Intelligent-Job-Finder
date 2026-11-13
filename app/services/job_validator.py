@@ -157,4 +157,27 @@ def find_job_by_identifier(user_id: int, identifier, user_cache: dict) -> dict |
     except Exception as e:
         logger.warning(f"Error querying SavedJob fallback for identifier {identifier}: {e}")
 
+    # 5. Verified tech jobs seed fallback (guarantees job identity is never lost across server workers)
+    try:
+        from app.services.job_api import load_seed_jobs
+        seed_jobs = load_seed_jobs()
+        for sj in seed_jobs:
+            if not sj.get("job_id"):
+                sj["job_id"] = generate_job_id(sj)
+            if str(sj.get("job_id", "")).strip() == ident_str:
+                GLOBAL_JOBS_REGISTRY[sj["job_id"]] = sj
+                return sj
+        try:
+            idx = int(ident_str)
+            if 0 <= idx < len(seed_jobs):
+                sj = seed_jobs[idx]
+                if not sj.get("job_id"):
+                    sj["job_id"] = generate_job_id(sj)
+                GLOBAL_JOBS_REGISTRY[sj["job_id"]] = sj
+                return sj
+        except (ValueError, TypeError):
+            pass
+    except Exception as e:
+        logger.warning(f"Error checking seed jobs for identifier {identifier}: {e}")
+
     return None

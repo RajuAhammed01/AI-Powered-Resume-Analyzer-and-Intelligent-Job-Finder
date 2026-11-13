@@ -1,7 +1,7 @@
 {
   "metadata": {
     "dataset_name": "JobSnap User Authentication & Login Activity Dataset",
-    "generated_at": "2026-11-13T08:24:59.918646",
+    "generated_at": "2026-11-13T08:42:51.756469",
     "total_users": 1,
     "storage_type": "email_indexed_hashmap",
     "hash_algorithm": "werkzeug_scrypt_pbkdf2_salted"
@@ -15,32 +15,21 @@
       "status": "active",
       "signup_date": "2026-11-13 08:24:56",
       "created_at_iso": "2026-11-13T08:24:56.312008",
-      "last_login_date": "2026-11-13 08:24:59",
-      "last_login_iso": "2026-11-13T08:24:59.910820",
+      "last_login_date": "2026-11-13 08:42:51",
+      "last_login_iso": "2026-11-13T08:42:51.739628",
       "last_login_ip": "127.0.0.1",
-      "total_logins": 2,
+      "total_logins": 3,
       "login_history": [
         {
-          "id": 3,
+          "id": 1,
           "user_id": 1,
           "email": "ridoyraihan@gmail.com",
           "status": "SUCCESS",
           "ip_address": "127.0.0.1",
-          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
           "failure_reason": "",
-          "timestamp": "2026-11-13T08:24:59.910820",
-          "formatted_date": "2026-11-13 08:24:59"
-        },
-        {
-          "id": 2,
-          "user_id": 1,
-          "email": "ridoyraihan@gmail.com",
-          "status": "SUCCESS",
-          "ip_address": "127.0.0.1",
-          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
-          "failure_reason": "Account registration created",
-          "timestamp": "2026-11-13T08:24:56.426313",
-          "formatted_date": "2026-11-13 08:24:56"
+          "timestamp": "2026-11-13T08:42:51.739628",
+          "formatted_date": "2026-11-13 08:42:51"
         }
       ]
     }
