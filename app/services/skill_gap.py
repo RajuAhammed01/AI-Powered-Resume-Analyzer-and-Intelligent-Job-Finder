@@ -25,6 +25,7 @@ from app.services.matcher import (
     education_qualification_score,
     experience_relevance_score,
     extract_job_responsibilities,
+    extract_job_sections,
     extract_projects_text,
     focused_semantic_score,
     project_portfolio_score,
@@ -75,6 +76,7 @@ def _is_core_domain_skill(skill_name: str, domain_cfg: dict = None) -> bool:
 
 # Comprehensive related skill clusters for partial matching & transferable foundations
 RELATED_SKILL_MAP = {
+    # Cloud & Container Orchestration
     "kubernetes": {
         "related": ["Docker", "Containerization", "DevOps"],
         "reason": "Candidate has verified Docker container experience; Kubernetes represents advanced cluster orchestration.",
@@ -83,6 +85,46 @@ RELATED_SKILL_MAP = {
         "related": ["Kubernetes", "DevOps", "CI/CD", "Linux"],
         "reason": "Candidate has orchestration or containerized infrastructure workflow familiarity.",
     },
+    "terraform": {
+        "related": ["Ansible", "CloudFormation", "DevOps", "AWS", "Infrastructure as Code"],
+        "reason": "Candidate has declarative infrastructure-as-code and cloud automation experience.",
+    },
+    "ansible": {
+        "related": ["Terraform", "DevOps", "Linux", "CI/CD"],
+        "reason": "Candidate has configuration management and infrastructure automation experience.",
+    },
+    "jenkins": {
+        "related": ["GitHub Actions", "GitLab CI", "CI/CD", "Docker"],
+        "reason": "Candidate has automated build and continuous deployment pipeline experience.",
+    },
+    "github actions": {
+        "related": ["GitLab CI", "CI/CD", "Jenkins", "DevOps"],
+        "reason": "Candidate has automated CI/CD workflow and pipeline integration experience.",
+    },
+    "linux": {
+        "related": ["Bash", "Shell Scripting", "DevOps", "Unix"],
+        "reason": "Candidate has POSIX system administration and command-line automation foundations.",
+    },
+    "ci/cd": {
+        "related": ["Git", "GitHub Actions", "Docker", "DevOps"],
+        "reason": "Candidate has source control workflows and automated build/pipeline familiarity.",
+    },
+
+    # Cloud Providers
+    "aws": {
+        "related": ["GCP", "Azure", "Cloud Computing", "DevOps", "Docker"],
+        "reason": "Candidate has cloud infrastructure experience on an alternative major cloud provider.",
+    },
+    "gcp": {
+        "related": ["AWS", "Azure", "Cloud Computing"],
+        "reason": "Candidate has enterprise cloud infrastructure and deployment experience.",
+    },
+    "azure": {
+        "related": ["AWS", "GCP", "Cloud Computing"],
+        "reason": "Candidate has enterprise cloud infrastructure and deployment experience.",
+    },
+
+    # Web & Languages
     "typescript": {
         "related": ["JavaScript", "React", "Node.js"],
         "reason": "Candidate has solid JavaScript proficiency; TypeScript is a strongly typed superset of JavaScript.",
@@ -103,53 +145,13 @@ RELATED_SKILL_MAP = {
         "related": ["Flask", "FastAPI", "Python", "PostgreSQL"],
         "reason": "Candidate has Python full-featured web application development experience.",
     },
-    "aws": {
-        "related": ["GCP", "Azure", "Cloud Computing", "DevOps", "Docker"],
-        "reason": "Candidate has cloud infrastructure experience on an alternative major cloud provider.",
+    "node.js": {
+        "related": ["Express", "JavaScript", "TypeScript", "Backend API"],
+        "reason": "Candidate has server-side JavaScript execution environment proficiency.",
     },
-    "gcp": {
-        "related": ["AWS", "Azure", "Cloud Computing"],
-        "reason": "Candidate has enterprise cloud infrastructure and deployment experience.",
-    },
-    "azure": {
-        "related": ["AWS", "GCP", "Cloud Computing"],
-        "reason": "Candidate has enterprise cloud infrastructure and deployment experience.",
-    },
-    "postgresql": {
-        "related": ["SQL", "MySQL", "SQLite", "Relational Database"],
-        "reason": "Candidate has relational database schema design and SQL querying proficiency.",
-    },
-    "mysql": {
-        "related": ["SQL", "PostgreSQL", "SQLite"],
-        "reason": "Candidate has relational database management and querying skills.",
-    },
-    "mongodb": {
-        "related": ["PostgreSQL", "SQL", "Redis", "NoSQL"],
-        "reason": "Candidate has database design background; MongoDB uses NoSQL document collection patterns.",
-    },
-    "deep learning": {
-        "related": ["Machine Learning", "PyTorch", "TensorFlow", "scikit-learn"],
-        "reason": "Candidate has machine learning foundations and statistical modeling background.",
-    },
-    "pytorch": {
-        "related": ["TensorFlow", "Keras", "Deep Learning", "Machine Learning"],
-        "reason": "Candidate has neural network framework experience with alternative deep learning libraries.",
-    },
-    "tensorflow": {
-        "related": ["PyTorch", "Keras", "Deep Learning", "Machine Learning"],
-        "reason": "Candidate has neural network modeling experience with deep learning tools.",
-    },
-    "graphql": {
-        "related": ["REST API", "Backend API"],
-        "reason": "Candidate has client-server API design, schema structuring, and endpoint integration skills.",
-    },
-    "ci/cd": {
-        "related": ["Git", "GitHub Actions", "Docker", "DevOps"],
-        "reason": "Candidate has source control workflows and automated build/pipeline familiarity.",
-    },
-    "tailwind css": {
-        "related": ["CSS", "Bootstrap", "HTML5", "Sass"],
-        "reason": "Candidate has modern responsive frontend styling and component design experience.",
+    "express": {
+        "related": ["Node.js", "JavaScript", "FastAPI", "REST API"],
+        "reason": "Candidate has backend web server and routing framework experience.",
     },
     "react": {
         "related": ["Vue.js", "Angular", "Next.js", "Frontend"],
@@ -171,17 +173,107 @@ RELATED_SKILL_MAP = {
         "related": ["React", "TypeScript", "JavaScript", "Vue.js"],
         "reason": "Candidate has enterprise single-page application framework experience.",
     },
+    "tailwind css": {
+        "related": ["CSS", "Bootstrap", "HTML5", "Sass"],
+        "reason": "Candidate has modern responsive frontend styling and component design experience.",
+    },
+
+    # Compiled Languages & Frameworks
+    "c++": {
+        "related": ["C", "Rust", "System Programming", "Object Oriented Programming"],
+        "reason": "Candidate has systems programming and high-performance compiled language foundations.",
+    },
+    "c": {
+        "related": ["C++", "Embedded Systems", "System Programming", "Linux"],
+        "reason": "Candidate has low-level systems programming and memory management foundations.",
+    },
+    "c#": {
+        "related": [".NET", "ASP.NET", "Unity", "Java"],
+        "reason": "Candidate has strongly-typed managed runtime and enterprise application experience.",
+    },
+    ".net": {
+        "related": ["C#", "ASP.NET", "Backend API"],
+        "reason": "Candidate has Microsoft enterprise framework and backend architecture experience.",
+    },
+    "asp.net": {
+        "related": [".NET", "C#", "Backend API", "REST API"],
+        "reason": "Candidate has server-side web application framework experience.",
+    },
+    "java": {
+        "related": ["Spring Boot", "Kotlin", "C++", "Backend"],
+        "reason": "Candidate has JVM enterprise backend and object-oriented architecture foundations.",
+    },
+    "spring boot": {
+        "related": ["Java", "Hibernate", "Microservices", "REST API"],
+        "reason": "Candidate has enterprise Java backend and microservices architecture experience.",
+    },
+    "golang": {
+        "related": ["Go", "Microservices", "Docker", "Backend"],
+        "reason": "Candidate has concurrent systems and backend microservices experience.",
+    },
+    "go": {
+        "related": ["Golang", "Microservices", "Docker", "Backend"],
+        "reason": "Candidate has concurrent systems and backend microservices experience.",
+    },
+
+    # Databases & Caching
+    "postgresql": {
+        "related": ["SQL", "MySQL", "SQLite", "Relational Database"],
+        "reason": "Candidate has relational database schema design and SQL querying proficiency.",
+    },
+    "mysql": {
+        "related": ["SQL", "PostgreSQL", "SQLite"],
+        "reason": "Candidate has relational database management and querying skills.",
+    },
+    "sqlite": {
+        "related": ["SQL", "PostgreSQL", "MySQL"],
+        "reason": "Candidate has lightweight relational database management and SQL querying skills.",
+    },
+    "mongodb": {
+        "related": ["PostgreSQL", "SQL", "Redis", "NoSQL"],
+        "reason": "Candidate has database design background; MongoDB uses NoSQL document collection patterns.",
+    },
     "redis": {
         "related": ["PostgreSQL", "SQL", "MongoDB", "Backend"],
         "reason": "Candidate has backend data management and in-memory caching familiarity.",
     },
-    "node.js": {
-        "related": ["Express", "JavaScript", "TypeScript", "Backend API"],
-        "reason": "Candidate has server-side JavaScript execution environment proficiency.",
+    "graphql": {
+        "related": ["REST API", "Backend API"],
+        "reason": "Candidate has client-server API design, schema structuring, and endpoint integration skills.",
     },
-    "express": {
-        "related": ["Node.js", "JavaScript", "FastAPI", "REST API"],
-        "reason": "Candidate has backend web server and routing framework experience.",
+    "rest api": {
+        "related": ["FastAPI", "Flask", "GraphQL", "Backend API"],
+        "reason": "Candidate has client-server communication and endpoint integration skills.",
+    },
+    "kafka": {
+        "related": ["RabbitMQ", "Event-Driven", "Pub/Sub", "Microservices"],
+        "reason": "Candidate has distributed streaming, messaging queues, and event-driven architecture experience.",
+    },
+    "rabbitmq": {
+        "related": ["Kafka", "Event-Driven", "Pub/Sub", "Backend"],
+        "reason": "Candidate has asynchronous message brokering and queue management experience.",
+    },
+
+    # Data Science, ML & Analytics
+    "deep learning": {
+        "related": ["Machine Learning", "PyTorch", "TensorFlow", "scikit-learn"],
+        "reason": "Candidate has machine learning foundations and statistical modeling background.",
+    },
+    "machine learning": {
+        "related": ["Deep Learning", "scikit-learn", "Data Science", "Python", "Artificial Intelligence"],
+        "reason": "Candidate has statistical modeling and algorithmic prediction foundations.",
+    },
+    "pytorch": {
+        "related": ["TensorFlow", "Keras", "Deep Learning", "Machine Learning"],
+        "reason": "Candidate has neural network framework experience with alternative deep learning libraries.",
+    },
+    "tensorflow": {
+        "related": ["PyTorch", "Keras", "Deep Learning", "Machine Learning"],
+        "reason": "Candidate has neural network modeling experience with deep learning tools.",
+    },
+    "scikit-learn": {
+        "related": ["Machine Learning", "Python", "Pandas", "Data Science"],
+        "reason": "Candidate has statistical modeling and classic machine learning background.",
     },
     "pandas": {
         "related": ["NumPy", "Python", "SQL", "Data Analysis"],
@@ -191,13 +283,9 @@ RELATED_SKILL_MAP = {
         "related": ["Pandas", "Python", "SciPy"],
         "reason": "Candidate has Python array computing and numerical processing foundations.",
     },
-    "scikit-learn": {
-        "related": ["Machine Learning", "Python", "Pandas", "Data Science"],
-        "reason": "Candidate has statistical modeling and classic machine learning background.",
-    },
-    "rest api": {
-        "related": ["FastAPI", "Flask", "GraphQL", "Backend API"],
-        "reason": "Candidate has client-server communication and endpoint integration skills.",
+    "nlp": {
+        "related": ["Natural Language Processing", "Machine Learning", "Transformers", "Python"],
+        "reason": "Candidate has linguistic text modeling and computational language processing foundations.",
     },
     "power bi": {
         "related": ["Tableau", "Excel", "Data Visualization", "SQL"],
@@ -215,13 +303,61 @@ RELATED_SKILL_MAP = {
         "related": ["Spreadsheets", "Data Analysis", "Tableau", "Power BI"],
         "reason": "Candidate has quantitative reporting and tabular data calculation skills.",
     },
-    "nlp": {
-        "related": ["Natural Language Processing", "Machine Learning", "Transformers", "Python"],
-        "reason": "Candidate has linguistic text modeling and computational language processing foundations.",
+    "snowflake": {
+        "related": ["BigQuery", "Redshift", "SQL", "Data Warehousing"],
+        "reason": "Candidate has cloud data warehousing and analytical SQL modeling experience.",
     },
-    "machine learning": {
-        "related": ["Deep Learning", "scikit-learn", "Data Science", "Python", "Artificial Intelligence"],
-        "reason": "Candidate has statistical modeling and algorithmic prediction foundations.",
+    "bigquery": {
+        "related": ["Snowflake", "Redshift", "SQL", "GCP"],
+        "reason": "Candidate has enterprise cloud analytical data warehousing experience.",
+    },
+    "spark": {
+        "related": ["PySpark", "Hadoop", "Databricks", "Big Data", "Python"],
+        "reason": "Candidate has distributed big data processing and large-scale data pipeline experience.",
+    },
+    "pyspark": {
+        "related": ["Spark", "Python", "Pandas", "Big Data"],
+        "reason": "Candidate has distributed Python data processing and big data pipeline experience.",
+    },
+
+    # Mobile Development
+    "react native": {
+        "related": ["React", "JavaScript", "TypeScript", "Flutter", "Mobile"],
+        "reason": "Candidate has cross-platform mobile development with React component architectures.",
+    },
+    "flutter": {
+        "related": ["Dart", "React Native", "Mobile Development"],
+        "reason": "Candidate has cross-platform reactive mobile UI framework development experience.",
+    },
+    "swift": {
+        "related": ["iOS", "Xcode", "Objective-C", "Mobile Development"],
+        "reason": "Candidate has native Apple iOS platform development experience.",
+    },
+    "kotlin": {
+        "related": ["Android", "Java", "Mobile Development"],
+        "reason": "Candidate has modern JVM and native Android application development experience.",
+    },
+
+    # Testing & QA
+    "pytest": {
+        "related": ["Unittest", "Unit Testing", "TDD", "Python"],
+        "reason": "Candidate has automated test suite development and test-driven development experience.",
+    },
+    "jest": {
+        "related": ["Cypress", "JavaScript", "React", "Unit Testing"],
+        "reason": "Candidate has automated frontend unit and integration testing experience.",
+    },
+    "cypress": {
+        "related": ["Selenium", "Playwright", "Jest", "QA Automation"],
+        "reason": "Candidate has end-to-end browser automation and web testing experience.",
+    },
+    "selenium": {
+        "related": ["Cypress", "Playwright", "QA Automation", "Python"],
+        "reason": "Candidate has browser automation and functional test suite experience.",
+    },
+    "playwright": {
+        "related": ["Cypress", "Selenium", "QA Automation"],
+        "reason": "Candidate has modern end-to-end web testing and browser automation experience.",
     },
 }
 
@@ -246,6 +382,90 @@ TECH_SKILL_MAX_PTS      = 0.85
 SOFT_SKILL_EXACT_PTS    = 0.35
 SOFT_SKILL_PARTIAL_PTS  = 0.15
 SOFT_SKILL_MAX_PTS      = 0.35
+
+
+def classify_job_skill_importance(job_description: str, job_skills: list[str]) -> dict:
+    """
+    Categorizes job skills based on where they appear in the job description:
+      - 'required': Mentioned in Requirements, Qualifications, Must-Have, or title (weight: 1.35x)
+      - 'preferred': Mentioned in Nice-to-Have, Preferred, Bonus, Plus (weight: 0.70x)
+      - 'standard': Standard role requirement (weight: 1.00x)
+    """
+    if not job_description or not job_skills:
+        return {s.lower().strip(): {"importance": "standard", "label": "Technical Requirement", "weight_mult": 1.00} for s in job_skills}
+
+    sections = extract_job_sections(job_description)
+    req_text = sections.get("required", "").lower()
+    pref_text = sections.get("preferred", "").lower()
+    desc_lower = job_description.lower()
+
+    importance_map = {}
+    for s in job_skills:
+        s_low = s.lower().strip()
+        if not s_low:
+            continue
+
+        in_pref = bool(pref_text and re.search(r"\b" + re.escape(s_low) + r"\b", pref_text))
+        in_req = bool(req_text and re.search(r"\b" + re.escape(s_low) + r"\b", req_text))
+
+        if in_pref and not in_req:
+            importance_map[s_low] = {
+                "importance": "preferred",
+                "label": "Nice-to-Have",
+                "weight_mult": 0.70,
+            }
+        elif in_req:
+            importance_map[s_low] = {
+                "importance": "required",
+                "label": "Required Core",
+                "weight_mult": 1.35,
+            }
+        else:
+            if re.search(r"(?:required|must\s+have|essential|minimum)[\s\w,]{0,40}\b" + re.escape(s_low) + r"\b", desc_lower):
+                importance_map[s_low] = {
+                    "importance": "required",
+                    "label": "Required Core",
+                    "weight_mult": 1.35,
+                }
+            elif re.search(r"(?:preferred|nice\s+to\s+have|bonus|plus|advantageous)[\s\w,]{0,40}\b" + re.escape(s_low) + r"\b", desc_lower):
+                importance_map[s_low] = {
+                    "importance": "preferred",
+                    "label": "Nice-to-Have",
+                    "weight_mult": 0.70,
+                }
+            else:
+                importance_map[s_low] = {
+                    "importance": "standard",
+                    "label": "Technical Requirement",
+                    "weight_mult": 1.00,
+                }
+    return importance_map
+
+
+def evaluate_skill_evidence(
+    skill_name: str,
+    resume_skills: list[str],
+    experience_text: str = "",
+    projects_text: str = "",
+    resume_text: str = "",
+) -> tuple[str, float]:
+    """
+    Evaluates where and how solidly the candidate demonstrates a skill in their resume.
+    Returns (evidence_source, depth_bonus).
+    """
+    s_low = skill_name.lower().strip()
+    s_pat = r"\b" + re.escape(s_low) + r"\b"
+
+    if experience_text and re.search(s_pat, experience_text.lower()):
+        return "Work Experience", 0.12
+    if projects_text and re.search(s_pat, projects_text.lower()):
+        return "Practical Projects", 0.08
+    if resume_text:
+        action_pat = r"(?:developed|built|implemented|created|designed|managed|used|utilizing|leveraging|architected)[\s\w,]{0,50}" + s_pat
+        if re.search(action_pat, resume_text.lower()):
+            return "Work Experience", 0.10
+
+    return "Skills Summary", 0.00
 
 
 def analyze_job_skill_gap(
@@ -311,23 +531,28 @@ def analyze_job_skill_gap(
     max_possible_points = 0.0
 
     # ── 1. Evaluate Every Required Job Skill ──────────────────────────────
+    skill_importance_map = classify_job_skill_importance(job_description, job_skills_clean)
+
     for j_lower, j_original in job_set_lower.items():
         is_soft = _is_soft_skill(j_original)
         is_core = _is_core_domain_skill(j_original, domain_cfg)
         category = "Soft Skill" if is_soft else ("Core Technical" if is_core else "Technical Skill")
 
+        imp_info = skill_importance_map.get(j_lower, {"importance": "standard", "label": "Technical Requirement", "weight_mult": 1.00})
+        weight_mult = imp_info["weight_mult"]
+
         if is_soft:
-            exact_pts = SOFT_SKILL_EXACT_PTS
-            partial_pts = SOFT_SKILL_PARTIAL_PTS
-            max_pts = SOFT_SKILL_MAX_PTS
+            exact_pts = SOFT_SKILL_EXACT_PTS * weight_mult
+            partial_pts = SOFT_SKILL_PARTIAL_PTS * weight_mult
+            max_pts = SOFT_SKILL_MAX_PTS * weight_mult
         elif is_core:
-            exact_pts = CORE_SKILL_EXACT_PTS
-            partial_pts = CORE_SKILL_PARTIAL_PTS
-            max_pts = CORE_SKILL_MAX_PTS
+            exact_pts = CORE_SKILL_EXACT_PTS * weight_mult
+            partial_pts = CORE_SKILL_PARTIAL_PTS * weight_mult
+            max_pts = CORE_SKILL_MAX_PTS * weight_mult
         else:
-            exact_pts = TECH_SKILL_EXACT_PTS
-            partial_pts = TECH_SKILL_PARTIAL_PTS
-            max_pts = TECH_SKILL_MAX_PTS
+            exact_pts = TECH_SKILL_EXACT_PTS * weight_mult
+            partial_pts = TECH_SKILL_PARTIAL_PTS * weight_mult
+            max_pts = TECH_SKILL_MAX_PTS * weight_mult
 
         max_possible_points += max_pts
 
@@ -335,17 +560,23 @@ def analyze_job_skill_gap(
         if j_lower in resume_set_lower:
             matched_name = resume_set_lower[j_lower]
             matched_skills.append(matched_name)
+            evidence_source, depth_bonus = evaluate_skill_evidence(
+                matched_name, resume_skills_clean, experience_text, projects_text, resume_text
+            )
+            pts_earned = min(max_pts, exact_pts + (depth_bonus * weight_mult))
             strong_skills.append({
                 "skill": j_original,
                 "matched_via": matched_name,
                 "category": category,
                 "type": "strong",
                 "strength": "Strong Match",
+                "importance": imp_info["label"],
+                "evidence_source": evidence_source,
                 "reason": "Directly verified in your resume.",
-                "points_earned": exact_pts,
+                "points_earned": pts_earned,
                 "max_points": max_pts,
             })
-            earned_points += exact_pts
+            earned_points += pts_earned
             continue
 
         # Check canonical or substring alias match
@@ -353,17 +584,23 @@ def analyze_job_skill_gap(
         for r_lower, r_orig in resume_set_lower.items():
             if j_lower == r_lower or (len(j_lower) > 3 and (j_lower in r_lower or r_lower in j_lower)):
                 matched_skills.append(j_original)
+                evidence_source, depth_bonus = evaluate_skill_evidence(
+                    r_orig, resume_skills_clean, experience_text, projects_text, resume_text
+                )
+                pts_earned = min(max_pts, exact_pts + (depth_bonus * weight_mult))
                 strong_skills.append({
                     "skill": j_original,
                     "matched_via": r_orig,
                     "category": category,
                     "type": "strong",
                     "strength": "Strong Match",
+                    "importance": imp_info["label"],
+                    "evidence_source": evidence_source,
                     "reason": f"Directly matches verified competency in '{r_orig}'.",
-                    "points_earned": exact_pts,
+                    "points_earned": pts_earned,
                     "max_points": max_pts,
                 })
-                earned_points += exact_pts
+                earned_points += pts_earned
                 exact_found = True
                 break
 
@@ -384,6 +621,7 @@ def analyze_job_skill_gap(
                         "category": category,
                         "type": "partial",
                         "strength": "Partial Match",
+                        "importance": imp_info["label"],
                         "reason": cluster_info["reason"],
                         "points_earned": partial_pts,
                         "max_points": max_pts,
@@ -397,15 +635,25 @@ def analyze_job_skill_gap(
             continue
 
         # C. Missing Skill (Absent from CV)
-        priority = "High Priority" if is_core else ("Low Priority" if is_soft else "Medium Priority")
+        if imp_info["importance"] == "required" or is_core:
+            priority = "High Priority"
+            impact_desc = "Required core competency for role"
+        elif imp_info["importance"] == "preferred" or is_soft:
+            priority = "Low Priority"
+            impact_desc = "Nice-to-have auxiliary competency"
+        else:
+            priority = "Medium Priority"
+            impact_desc = "Beneficial competency"
+
         missing_skills.append(j_original)
         missing_skills_detailed.append({
             "skill": j_original,
             "category": category,
             "type": "missing",
             "strength": "Missing Skill",
+            "importance": imp_info["label"],
             "priority": priority,
-            "impact": "Required core competency for role" if is_core else "Beneficial competency",
+            "impact": impact_desc,
         })
 
     # Verify if matched skills contain domain-specific core technical competencies

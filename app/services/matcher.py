@@ -70,6 +70,8 @@ _JOB_BOILERPLATE_PATTERNS = [
     r"(?i)about\s+(?:us|the\s+company|our\s+team).*?(?=\n\n|\Z)",
     r"(?i)apply\s+(?:now|here|today|by).*?(?:\n|$)",
     r"(?i)how\s+to\s+apply.*?(?:\n|$)",
+    r"(?i)we\s+offer\s+competitive\s+compensation.*?(?:\n|$)",
+    r"(?i)fast-paced\s+environment.*?(?:\n|$)",
 ]
 
 # Common filler in resumes that doesn't represent skill or experience signal.
@@ -81,6 +83,7 @@ _RESUME_BOILERPLATE_PATTERNS = [
     r"(?i)nationality.*?(?:\n|$)",
     r"(?i)marital\s+status.*?(?:\n|$)",
     r"(?i)passport\s+no.*?(?:\n|$)",
+    r"(?i)address\s*:.*?(?:\n|$)",
 ]
 
 
@@ -95,13 +98,59 @@ def _strip_boilerplate(text: str, patterns: list[re.Pattern]) -> str:
     return cleaned.strip()
 
 
+def extract_job_sections(job_desc: str) -> dict:
+    """
+    Extract structured sections from a job description:
+    - 'required': Must-have requirements / qualifications
+    - 'preferred': Nice-to-have / bonus qualifications
+    - 'responsibilities': Role duties / responsibilities
+    - 'core': Combined requirements & responsibilities
+    """
+    if not job_desc:
+        return {"required": "", "preferred": "", "responsibilities": "", "core": ""}
+
+    cleaned_desc = _strip_boilerplate(job_desc, _JOB_BOILERPLATE_PATTERNS)
+
+    preferred_pat = re.compile(
+        r"(?:^|\n)\s*(?:preferred\s+qualifications?|preferred\s+skills?|nice\s+to\s+have|bonus\s+points?|what\s+gives\s+you\s+an\s+edge|additional\s+qualifications?|desired\s+skills?|bonus\s+skills?|preferred)[^\n]*\n(.*?)(?=\n\s*(?:requirements?|qualifications?|must\s+have|responsibilities|duties|benefits|about\s+us|what\s+we\s+offer)\b|\Z)",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    required_pat = re.compile(
+        r"(?:^|\n)\s*(?:minimum\s+qualifications?|requirements?|must\s+have|basic\s+qualifications?|qualifications?|what\s+(?:you(?:'ll)?\s+)?(?:need|bring)|what\s+we(?:'re)?\s+looking\s+for|essential\s+skills?|core\s+requirements?)[^\n]*\n(.*?)(?=\n\s*(?:preferred|nice\s+to\s+have|bonus|responsibilities|duties|benefits|about\s+us|what\s+we\s+offer)\b|\Z)",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    resp_pat = re.compile(
+        r"(?:^|\n)\s*(?:responsibilities|duties|what\s+you(?:'ll)?\s+do|key\s+responsibilities|day\s+to\s+day|your\s+role|role\s+overview|what\s+you'll\s+be\s+doing)[^\n]*\n(.*?)(?=\n\s*(?:requirements?|qualifications?|preferred|nice\s+to\s+have|benefits|about\s+us|who\s+you\s+are)\b|\Z)",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    preferred_match = preferred_pat.search(cleaned_desc)
+    preferred_text = preferred_match.group(1).strip() if preferred_match else ""
+
+    required_match = required_pat.search(cleaned_desc)
+    required_text = required_match.group(1).strip() if required_match else ""
+
+    resp_match = resp_pat.search(cleaned_desc)
+    resp_text = resp_match.group(1).strip() if resp_match else ""
+
+    core_text = _extract_core_requirements(job_desc)
+
+    return {
+        "required": required_text,
+        "preferred": preferred_text,
+        "responsibilities": resp_text,
+        "core": core_text,
+    }
+
+
 def _extract_core_requirements(job_desc: str) -> str:
     """
     Extract the requirements/responsibilities/qualifications section from a
     job description, discarding company overview and benefits boilerplate.
     Falls back to the full (cleaned) description if no section is found.
     """
-    # Try to find requirements / qualifications / responsibilities sections
     section_pattern = re.compile(
         r"(?:^|\n)\s*(?:requirements?|qualifications?|what\s+(?:you(?:'ll)?\s+)?(?:need|bring)"
         r"|must\s+have|responsibilities|key\s+skills|technical\s+skills"
@@ -112,8 +161,6 @@ def _extract_core_requirements(job_desc: str) -> str:
 
     matches = list(section_pattern.finditer(job_desc))
     if matches:
-        # Take everything from the first match to the end,
-        # then strip standard boilerplate.
         start = matches[0].start()
         core = job_desc[start:]
         return _strip_boilerplate(core, _JOB_BOILERPLATE_PATTERNS)
@@ -189,7 +236,8 @@ def focused_semantic_score(resume_text: str, job_description: str,
                            education_text: str = "") -> int:
     """
     High-speed focused semantic score after stripping boilerplate from both sides
-    and concentrating on core professional signals. Runs in sub-millisecond time.
+    and concentrating on core professional signals. Uses sublinear TF-IDF with
+    n-grams (1, 2) for multi-token phrase capturing in sub-millisecond time.
     """
     if not resume_text.strip() or not job_description.strip():
         return 0
@@ -201,7 +249,12 @@ def focused_semantic_score(resume_text: str, job_description: str,
         return tfidf_cosine_score(resume_text, job_description)
 
     try:
-        vectorizer = TfidfVectorizer(stop_words="english", max_features=250)
+        vectorizer = TfidfVectorizer(
+            stop_words="english",
+            max_features=300,
+            ngram_range=(1, 2),
+            sublinear_tf=True,
+        )
         tfidf = vectorizer.fit_transform([resume_signal, job_signal])
         score = float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
         return int(round(max(0.0, min(1.0, score * 1.35)) * 100))
@@ -325,6 +378,39 @@ def title_alignment_score(
     return max(5, min(98, final_score))
 
 
+def extract_job_required_years(job_description: str) -> tuple[float, float]:
+    """
+    Extracts the minimum and maximum years of experience required by a job posting.
+    Returns (min_years, max_years). If not specified, returns (0.0, 0.0).
+    """
+    if not job_description:
+        return 0.0, 0.0
+
+    # Range: "3-5 years", "3 to 5 years"
+    range_match = re.search(
+        r"(\d+)\s*(?:-|to|–|—)\s*(\d+)\s*(?:years?|yrs?)",
+        job_description,
+        re.IGNORECASE,
+    )
+    if range_match:
+        return float(range_match.group(1)), float(range_match.group(2))
+
+    # Single figure with plus or minimum: "5+ years", "minimum 3 years", "at least 4 years"
+    single_patterns = [
+        r"(?:minimum|at\s+least|over|more\s+than)\s*(\d+)\+?\s*(?:years?|yrs?)",
+        r"(\d+)\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:experience|work|relevant)",
+        r"(\d+)\+?\s*(?:years?|yrs?)",
+    ]
+    for pat in single_patterns:
+        m = re.search(pat, job_description, re.IGNORECASE)
+        if m:
+            val = float(m.group(1))
+            if 0 < val <= 25:
+                return val, val + 2.0
+
+    return 0.0, 0.0
+
+
 def extract_experience_years(text: str) -> float:
     """
     Extract the most prominent 'years of experience' figure from resume text.
@@ -371,8 +457,8 @@ def experience_relevance_score(resume_text: str, job_description: str,
                                experience_text: str = "") -> int:
     """
     Score how relevant the candidate's work experience is to the job.
-    Considers years of experience, domain keyword overlap in experience section,
-    and seniority alignment.
+    Considers required tenure ranges, domain keyword overlap in experience section,
+    and nuanced seniority alignment (senior, mid, entry, intern).
     Returns 0-100.
     """
     if not resume_text.strip():
@@ -381,39 +467,51 @@ def experience_relevance_score(resume_text: str, job_description: str,
     score = 0.0
     exp_text = experience_text if experience_text else resume_text
     candidate_years = extract_experience_years(resume_text)
+    min_req, max_req = extract_job_required_years(job_description)
 
-    # A) Years of experience vs. job requirements
-    job_years = 0.0
-    for pat in [r"(\d+)\+?\s*(?:years?|yrs?)", r"minimum\s+(\d+)\s+(?:years?|yrs?)"]:
-        m = re.search(pat, job_description, re.IGNORECASE)
-        if m:
-            job_years = float(m.group(1))
-            break
+    # Seniority keywords
+    senior_keywords = {"senior", "lead", "principal", "staff", "head", "director", "vp", "manager", "architect"}
+    junior_keywords = {"junior", "intern", "trainee", "entry", "associate", "graduate"}
 
-    if job_years > 0:
-        if candidate_years >= job_years:
+    job_lower = job_description.lower()
+    res_lower = resume_text.lower()
+
+    job_is_senior = any(k in job_lower for k in senior_keywords) or (min_req >= 5.0)
+    job_is_junior = any(k in job_lower for k in junior_keywords) or ("intern" in job_lower)
+    resume_is_senior = any(k in res_lower for k in senior_keywords) or (candidate_years >= 5.0)
+    resume_is_junior = any(k in res_lower for k in junior_keywords) or (candidate_years <= 2.0)
+
+    # A) Years of experience vs. job requirements (40 pts max)
+    if min_req > 0:
+        if candidate_years >= min_req:
             score += 40  # Meets or exceeds requirement
-        elif candidate_years >= job_years * 0.6:
-            score += 25  # Close enough
+        elif candidate_years >= min_req * 0.7:
+            score += 28  # Close enough
+        elif candidate_years >= min_req * 0.4:
+            score += 18  # Moderate gap
         elif candidate_years > 0:
-            score += 10  # Some experience
+            score += 10  # Significant gap
+        else:
+            score += 5
+    elif job_is_junior:
+        # Junior/intern position with unspecified years: early-career candidates receive full tenure credit
+        if candidate_years <= 3:
+            score += 38
+        else:
+            score += 32
     else:
-        # Job doesn't specify years — reward having any experience
+        # Standard mid-level job without explicit year count
         if candidate_years >= 3:
             score += 35
         elif candidate_years >= 1:
-            score += 25
+            score += 26
         elif candidate_years > 0:
-            score += 15
+            score += 16
         else:
-            score += 10  # No detectable years
+            score += 12
 
-    # B) Domain keyword overlap between experience section and job description
-    # Extract meaningful domain terms (3+ chars) from job description
-    job_lower = job_description.lower()
+    # B) Domain keyword overlap between experience section and job description (40 pts max)
     exp_lower = exp_text.lower()
-
-    # Get distinctive terms from the job description (not stop words)
     domain_terms = set()
     for word in re.findall(r"\b[a-z]{4,}\b", job_lower):
         if word not in {"with", "have", "that", "this", "from", "will", "your",
@@ -429,27 +527,30 @@ def experience_relevance_score(resume_text: str, job_description: str,
     if domain_terms:
         overlap = sum(1 for t in domain_terms if t in exp_lower)
         ratio = overlap / max(1, len(domain_terms))
-        score += min(40, int(ratio * 60))
+        score += min(40, int(ratio * 65))
     else:
-        score += 15
+        score += 16
 
-    # C) Seniority signal
-    senior_keywords = {"senior", "lead", "principal", "staff", "head", "director", "vp", "manager"}
-    junior_keywords = {"junior", "intern", "trainee", "entry", "associate", "graduate"}
-
-    job_is_senior = any(k in job_lower for k in senior_keywords)
-    job_is_junior = any(k in job_lower for k in junior_keywords)
-    resume_is_senior = any(k in resume_text.lower() for k in senior_keywords)
-    resume_is_junior = any(k in resume_text.lower() for k in junior_keywords)
-
-    if job_is_senior and resume_is_senior:
-        score += 20
-    elif job_is_junior and (resume_is_junior or candidate_years <= 2):
-        score += 20
+    # C) Seniority alignment (20 pts max)
+    if job_is_senior:
+        if resume_is_senior:
+            score += 20
+        elif candidate_years >= 3:
+            score += 12
+        else:
+            score += 4  # Meaningful seniority penalty: junior applying to senior/staff
+    elif job_is_junior:
+        if resume_is_junior:
+            score += 20  # Perfect fit for early-career / internship role
+        elif candidate_years <= 3:
+            score += 18
+        else:
+            score += 14  # Experienced candidate applying for junior role
     elif not job_is_senior and not job_is_junior:
-        score += 15  # Mid-level, no strong signal either way
+        # Mid-level role
+        score += 16
     else:
-        score += 5   # Mismatch
+        score += 10
 
     return int(min(100, max(0, score)))
 
@@ -458,6 +559,7 @@ def education_qualification_score(resume_text: str, job_description: str,
                                   education_text: str = "") -> int:
     """
     Score alignment of education and certifications with the job requirements.
+    Recognizes ongoing university degrees, domain field relevance, and professional certifications.
     Returns 0-100.
     """
     score = 0.0
@@ -475,6 +577,9 @@ def education_qualification_score(resume_text: str, job_description: str,
     elif re.search(r"\b(?:m\.?s\.?c?\.?|master(?:'?s)?|m\.?tech|m\.?eng|mba)\b", search_text):
         degree_level = 3
     elif re.search(r"\b(?:b\.?s\.?c?\.?|bachelor(?:'?s)?|b\.?tech|b\.?eng|b\.?a\.?)\b", search_text):
+        degree_level = 2
+    elif re.search(r"\b(?:expected\s+202\d|graduat(?:ing|ion)\s+202\d|undergraduate|pursuing\s+b\.?s|student\s+at)\b", search_text):
+        # Current student candidate
         degree_level = 2
     elif re.search(r"\b(?:diploma|associate|certificate|certification)\b", search_text):
         degree_level = 1
@@ -505,14 +610,14 @@ def education_qualification_score(resume_text: str, job_description: str,
             score += 20
     else:
         # Job doesn't specify degree — give baseline credit for any degree
-        score += min(25, degree_level * 8)
+        score += min(25, max(12, degree_level * 8))
 
     # B) Field relevance (35 pts max)
     relevant_fields = {
         "computer science", "software engineering", "information technology",
         "computer engineering", "data science", "artificial intelligence",
         "machine learning", "mathematics", "statistics", "electrical engineering",
-        "information systems", "cyber security", "computational",
+        "information systems", "cyber security", "computational", "physics",
     }
     field_match = any(f in search_text for f in relevant_fields)
     job_mentions_cs = any(f in job_lower for f in relevant_fields)
@@ -520,23 +625,24 @@ def education_qualification_score(resume_text: str, job_description: str,
     if field_match and job_mentions_cs:
         score += 35  # Relevant field aligned with job
     elif field_match:
-        score += 25  # Has relevant field, job doesn't specify
+        score += 28  # Has relevant field, job doesn't specify
     elif degree_level >= 2:
-        score += 15  # Has a degree in an unspecified field
+        score += 18  # Has a degree in an unspecified field
     else:
-        score += 5
+        score += 8
 
     # C) Certifications & qualifications mentioned in job that appear in resume (35 pts max)
     cert_patterns = [
         r"(?:aws|azure|gcp|google\s+cloud)\s+certif",
         r"(?:pmp|scrum\s+master|csm|cissp|ceh|ccna|ccnp)",
         r"(?:certified|certification|certificate)\s+\w+",
-        r"(?:tensorflow|kubernetes|docker)\s+certif",
+        r"(?:tensorflow|kubernetes|docker|cka|ckad|terraform)\s+certif",
+        r"(?:aws\s+certified|solutions\s+architect)",
     ]
     cert_score = 0
     for pat in cert_patterns:
         if re.search(pat, job_lower) and re.search(pat, full_lower):
-            cert_score += 12
+            cert_score += 14
 
     score += min(35, cert_score)
 
@@ -589,7 +695,7 @@ def project_portfolio_score(
     is_internship_seeking: bool = False,
 ) -> tuple[int, str]:
     """
-    Evaluates practical implementation experience from projects, portfolio, and GitHub work.
+    Evaluates practical implementation experience from projects, portfolio, quantifiable metrics, and GitHub work.
     Returns (score 0-100, rationale).
     """
     proj = projects_text.strip() if projects_text else extract_projects_text(resume_text)
@@ -600,10 +706,10 @@ def project_portfolio_score(
     score = 0
     reasons = []
 
-    # 1. Evidence of practical projects / GitHub portfolio
+    # 1. Evidence of practical projects / GitHub portfolio / Live deployment
     has_proj_section = bool(proj)
     has_github = bool(re.search(r"\bgithub\.com/[a-zA-Z0-9_\-\.]+", resume_text or "", re.IGNORECASE))
-    has_demo_links = bool(re.search(r"https?://[a-zA-Z0-9_\-\.]+", proj))
+    has_demo_links = bool(re.search(r"https?://(?:[a-zA-Z0-9_\-\.]+\.)?(?:vercel\.app|netlify\.app|github\.io|heroku\.com|[a-zA-Z0-9_\-\.]+)", proj))
 
     if has_proj_section:
         score += 30
@@ -650,6 +756,15 @@ def project_portfolio_score(
     elif len(actions_found) >= 1:
         score += 10
 
+    # 4. Quantifiable engineering impact metrics bonus
+    has_metrics = bool(re.search(
+        r"\b(?:\d+%\s*(?:increase|reduction|improvement|growth|faster)|reduced\s+latency|optimized|scaled\s+to\s+[\d,]+|[\d,]+\s+(?:users|requests|queries|rps))\b",
+        proj_lower
+    ))
+    if has_metrics:
+        score += 10
+        reasons.append("Quantifiable engineering outcomes and performance metrics demonstrated")
+
     # Early career / internship candidate credit: academic/capstone projects count as qualifying evidence
     if is_internship_seeking and has_proj_section:
         score = max(score, 82)
@@ -668,7 +783,7 @@ def responsibilities_alignment_score(
 ) -> tuple[int, str]:
     """
     Evaluates day-to-day job responsibilities vs candidate past achievements and duties.
-    Uses ultra-fast TF-IDF and shared action-verb mapping for sub-millisecond execution.
+    Uses ultra-fast TF-IDF with n-grams and shared action-verb mapping for sub-millisecond execution.
     Returns (score 0-100, rationale).
     """
     resp_text = extract_job_responsibilities(job_description)
@@ -682,14 +797,19 @@ def responsibilities_alignment_score(
 
     task_verbs = [
         "develop", "build", "design", "maintain", "collaborate", "test",
-        "deploy", "analyze", "lead", "manage", "optimize", "deliver"
+        "deploy", "analyze", "lead", "manage", "optimize", "deliver", "architect", "scale"
     ]
     resp_l = clean_resp.lower()
     cand_l = clean_cand.lower()
     shared_actions = [v for v in task_verbs if v in resp_l and v in cand_l]
 
     try:
-        vec = TfidfVectorizer(stop_words="english", max_features=120)
+        vec = TfidfVectorizer(
+            stop_words="english",
+            max_features=160,
+            ngram_range=(1, 2),
+            sublinear_tf=True,
+        )
         tfidf = vec.fit_transform([clean_resp, clean_cand])
         tfidf_sim = float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
         sim_score = int(round(max(0.25, min(0.95, tfidf_sim + 0.40)) * 100))
