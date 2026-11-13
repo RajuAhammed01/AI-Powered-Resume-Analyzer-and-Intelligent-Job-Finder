@@ -246,6 +246,13 @@ def profile():
             else:
                 current_user.set_password(new_pass)
                 db.session.commit()
+                from app.services.auth_dataset import record_login_activity
+                record_login_activity(
+                    email=current_user.email,
+                    status="SUCCESS",
+                    user=current_user,
+                    failure_reason="Password changed by user",
+                )
                 flash("Password updated successfully.")
 
         elif action == "update_settings":

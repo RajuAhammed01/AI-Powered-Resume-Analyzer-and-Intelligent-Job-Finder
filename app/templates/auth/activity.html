@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <div class="hero-tag" style="background: #e0e7ff; color: #4338ca;">
+        <i class="fa-solid fa-clock-rotate-left"></i> Security & Audit Log
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+        Login Activity & Sessions
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+        Track signups, login timestamps, client IP addresses, and authentication status.
+    </p>
+</div>
+
+<!-- Quick Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="card-panel">
+        <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Account Signup Date
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-main);">
+            {{ current_user.created_at.strftime('%b %d, %Y %I:%M %p') if current_user.created_at else 'N/A' }}
+        </div>
+        <div style="font-size: 0.8rem; color: #16a34a; margin-top: 0.35rem;">
+            <i class="fa-solid fa-check-circle"></i> Verified Account
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Last Successful Login
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-main);">
+            {{ current_user.last_login.strftime('%b %d, %Y %I:%M %p') if current_user.last_login else 'Current Session' }}
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;">
+            <i class="fa-solid fa-location-crosshairs"></i> IP: {{ current_user.last_login_ip or 'Localhost' }}
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Total Logins Recorded
+        </div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">
+            {{ current_user.login_count or 1 }}
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Recorded in authentication dataset
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Password Security
+        </div>
+        <div style="font-size: 1.05rem; font-weight: 700; color: #059669;">
+            <i class="fa-solid fa-shield-halved"></i> Salted Cryptographic Hash
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem; font-family: monospace;">
+            {{ current_user.password_hash[:26] }}...
+        </div>
+    </div>
+</div>
+
+<!-- History Table -->
+<div class="card-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div>
+            <h2 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin: 0;">
+                Recent Authentication History
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Full log of recent sign-ins and session attempts.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('auth.dataset_view') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-database"></i> View Full Auth Dataset
+            </a>
+            <a href="{{ url_for('auth.export_dataset') }}" class="btn btn-primary btn-sm" style="margin-left: 0.5rem;">
+                <i class="fa-solid fa-download"></i> Export JSON
+            </a>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">
+                    <th style="padding: 0.75rem 1rem;">Date & Time</th>
+                    <th style="padding: 0.75rem 1rem;">Status</th>
+                    <th style="padding: 0.75rem 1rem;">IP Address</th>
+                    <th style="padding: 0.75rem 1rem;">Client / User-Agent</th>
+                    <th style="padding: 0.75rem 1rem;">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--text-main);">
+                            <i class="fa-regular fa-clock" style="margin-right: 0.4rem; color: var(--primary);"></i>
+                            {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'N/A' }}
+                        </td>
+                        <td style="padding: 0.85rem 1rem;">
+                            {% if log.status == 'SUCCESS' %}
+                                <span class="badge-pill badge-match-high" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <i class="fa-solid fa-check"></i> Success
+                                </span>
+                            {% else %}
+                                <span class="badge-pill badge-match-low" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                                    <i class="fa-solid fa-xmark"></i> Failed
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 0.85rem 1rem; font-family: monospace; color: var(--text-muted);">
+                            {{ log.ip_address }}
+                        </td>
+                        <td style="padding: 0.85rem 1rem; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 0.82rem;">
+                            {{ log.user_agent }}
+                        </td>
+                        <td style="padding: 0.85rem 1rem; color: var(--text-muted); font-size: 0.82rem;">
+                            {{ log.failure_reason if log.failure_reason else 'Normal login' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            No historical login events recorded yet.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

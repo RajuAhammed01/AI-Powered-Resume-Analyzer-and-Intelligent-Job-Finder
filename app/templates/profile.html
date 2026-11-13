@@ -48,16 +48,26 @@
     </div>
 
     <!-- Account Status Card -->
-    <div class="card-panel" style="background: #eff6ff; border-color: #bfdbfe; display: flex; flex-direction: column; justify-content: center;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+    <div class="card-panel" style="background: #eff6ff; border-color: #bfdbfe; display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #1e40af; font-size: 1rem;">
                 <i class="fa-solid fa-shield-halved"></i> Account Status
             </div>
             <span class="badge-pill badge-match-high">Active</span>
         </div>
-        <p style="font-size: 0.85rem; color: #1e3a8a; line-height: 1.5; margin: 0;">
-            Your account is in good standing. Keep your profile updated for better job matches.
-        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.82rem; color: #1e3a8a; margin: 0.4rem 0;">
+            <div><i class="fa-regular fa-calendar-check" style="color: #2563eb; margin-right: 0.35rem;"></i> <strong>Signup Date:</strong> {{ current_user.created_at.strftime('%b %d, %Y %I:%M %p') if current_user.created_at else 'N/A' }}</div>
+            <div><i class="fa-regular fa-clock" style="color: #2563eb; margin-right: 0.35rem;"></i> <strong>Last Login:</strong> {{ current_user.last_login.strftime('%b %d, %Y %I:%M %p') if current_user.last_login else 'Current Session' }}</div>
+            <div><i class="fa-solid fa-arrow-right-to-bracket" style="color: #2563eb; margin-right: 0.35rem;"></i> <strong>Total Logins:</strong> {{ current_user.login_count or 1 }} recorded in auth dataset</div>
+        </div>
+        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+            <a href="{{ url_for('auth.activity') }}" class="btn btn-outline btn-sm" style="font-size: 0.78rem; padding: 0.35rem 0.75rem; background: white;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Login Activity
+            </a>
+            <a href="{{ url_for('auth.dataset_view') }}" class="btn btn-outline btn-sm" style="font-size: 0.78rem; padding: 0.35rem 0.75rem; background: white;">
+                <i class="fa-solid fa-database"></i> Auth Dataset
+            </a>
+        </div>
     </div>
 </div>
 
@@ -276,23 +286,28 @@
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.88rem;">
-                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
-                    <span><i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Edit Profile</span>
+                <a href="#tab-personal" onclick="switchTab(event, 'tab-personal'); document.getElementById('name').focus();" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Edit Profile Details</span>
                     <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
                 </a>
 
-                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                <a href="#current_password" onclick="document.getElementById('current_password').focus();" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
                     <span><i class="fa-solid fa-lock" style="color: var(--primary);"></i> Change Password</span>
                     <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
                 </a>
 
-                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
-                    <span><i class="fa-solid fa-bell" style="color: var(--primary);"></i> Manage Notifications</span>
+                <a href="{{ url_for('auth.activity') }}" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Login Activity & History</span>
                     <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
                 </a>
 
-                <a href="#" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
-                    <span><i class="fa-solid fa-download" style="color: var(--primary);"></i> Download My Data</span>
+                <a href="{{ url_for('auth.dataset_view') }}" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-database" style="color: var(--primary);"></i> User Auth Dataset & Hashmap</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
+                </a>
+
+                <a href="{{ url_for('auth.export_dataset') }}" class="nav-item-link" style="color: var(--text-main); justify-content: space-between; background: var(--bg-subtle);">
+                    <span><i class="fa-solid fa-download" style="color: var(--primary);"></i> Download Dataset (.json)</span>
                     <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-light);"></i>
                 </a>
             </div>

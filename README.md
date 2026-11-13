@@ -61,10 +61,33 @@ Run the full automated test suite:
 
 ---
 
-## 🔒 Security & Architecture Notes
+## 🔒 Security, Authentication Dataset & Architecture
+
+- **User Authentication & Activity Dataset:**
+  - **Signup Information & Dates:** Tracks exact registration timestamps (`created_at`) and dates for every user.
+  - **Cryptographic Password Hashing:** Uses salted PBKDF2/scrypt cryptographic one-way hashing; passwords are never stored in plain text.
+  - **Login Dates & Session Auditing:** Records last login date (`last_login`), client IP address (`last_login_ip`), and cumulative login count.
+  - **Email-Indexed Hashmap Dataset:** Structured dataset accessible at `/dataset` and exportable at `/export-dataset` mapping `email -> {user_id, name, password_hash, signup_date, last_login_date, total_logins, login_history}`.
+  - **Audit Trail (`LoginHistory`):** Logs every successful and failed login attempt with timestamp, IP, User-Agent, and status.
 
 - **Verified Skill Extraction:** Skills are strictly extracted from CV text without assuming unmentioned technologies (e.g., "Computer Vision").
 - **Transparent Match Scoring:** Formula: $\text{Final Score} = 0.60 \times \text{Skill Coverage} + 0.40 \times \text{Semantic Fit}$.
 - **3-Tier Competency Breakdown:** Every job displays Matched (100%), Partially Matched (50%, with foundation skill), and Missing (0%) skills.
 - **Direct Live Apply:** Redirects users directly to original job application URLs with pipeline tracking.
 - Passwords use Werkzeug hashes with CSRF protection enabled across all forms.
+
+---
+
+## 🚀 Deploy to Vercel (Production)
+
+JobSnap is fully configured for deployment on Vercel:
+
+1. **Vercel Config:** Configured in `vercel.json` and WSGI entrypoint `api/index.py`.
+2. **Serverless Optimized:** Lightweight production dependencies in `requirements.txt` (< 250MB size limit) with pure-Python PostgreSQL driver `pg8000`.
+3. **Database Support:** Automatic support for external cloud databases via `DATABASE_URL` (Neon, Supabase, Vercel Postgres) with graceful fallback to `/tmp/database.db`.
+4. **Deploy Command:**
+   ```bash
+   vercel --prod
+   ```
+
+For detailed setup instructions, see the complete guide: [VERCEL_DEPLOYMENT.md](file:///e:/JobSnap/AI-Powered-Resume-Analyzer-and-Intelligent-Job-Finder/VERCEL_DEPLOYMENT.md).

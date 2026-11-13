@@ -16,12 +16,7 @@ import warnings
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-try:
-    from sentence_transformers import SentenceTransformer
-    _MODEL = None
-except ImportError:
-    _MODEL = False
-
+_MODEL = None
 _EMBED_CACHE = {}
 
 
@@ -31,6 +26,8 @@ def get_sentence_transformer():
         return None
     if _MODEL is None:
         try:
+            # Lazy import SentenceTransformer on first use to prevent slow app boot
+            from sentence_transformers import SentenceTransformer
             # Load small model for fast CPU inference
             _MODEL = SentenceTransformer('all-MiniLM-L6-v2')
         except Exception:

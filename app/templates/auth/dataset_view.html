@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <div class="hero-tag" style="background: #ecfdf5; color: #047857;">
+        <i class="fa-solid fa-database"></i> Data Architecture
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+                User Authentication & Activity Dataset
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+                Structured dataset storing user signups, dates, hashed passwords (hashmap index), and login audit trails.
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{{ url_for('auth.dataset_view', format='json') }}" target="_blank" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-code"></i> View Raw JSON API
+            </a>
+            <a href="{{ url_for('auth.export_dataset') }}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-download"></i> Download Dataset (.json)
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Dataset Metric Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="card-panel">
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Total Registered Users
+        </div>
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">
+            {{ summary.total_registered_users }}
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Indexed by Email Hashmap
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Total Login Attempts
+        </div>
+        <div style="font-size: 1.8rem; font-weight: 800; color: #10b981;">
+            {{ summary.total_login_attempts }}
+        </div>
+        <div style="font-size: 0.8rem; color: #059669; margin-top: 0.25rem;">
+            {{ summary.successful_logins }} Successful / {{ summary.failed_logins }} Failed
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Latest Signup Date
+        </div>
+        <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">
+            {{ summary.latest_signup_date }}
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Account Creation Timestamp
+        </div>
+    </div>
+
+    <div class="card-panel">
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Password Hash Format
+        </div>
+        <div style="font-size: 1.05rem; font-weight: 700; color: #6366f1;">
+            PBKDF2:SHA256 / scrypt
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Cryptographic Salted Hashmap
+        </div>
+    </div>
+</div>
+
+<!-- Tab Navigation between Table and Hashmap Tree -->
+<div class="card-panel" style="margin-bottom: 2rem;">
+    <div style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+        <button class="btn btn-sm btn-outline active" id="btn-table-view" onclick="showDatasetView('table')" style="font-weight: 600;">
+            <i class="fa-solid fa-table"></i> Tabular Dataset View
+        </button>
+        <button class="btn btn-sm btn-outline" id="btn-hashmap-view" onclick="showDatasetView('hashmap')" style="font-weight: 600;">
+            <i class="fa-solid fa-sitemap"></i> Email Key-Value Hashmap
+        </button>
+    </div>
+
+    <!-- Tabular View -->
+    <div id="dataset-table-view">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">
+                        <th style="padding: 0.75rem 1rem;">User ID / Name</th>
+                        <th style="padding: 0.75rem 1rem;">Email Key</th>
+                        <th style="padding: 0.75rem 1rem;">Signup Date</th>
+                        <th style="padding: 0.75rem 1rem;">Last Login Date</th>
+                        <th style="padding: 0.75rem 1rem;">Logins</th>
+                        <th style="padding: 0.75rem 1rem;">Password Hash (Stored Securely)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for email, u in hashmap.items() %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--text-main);">
+                            #{{ u.user_id }} - {{ u.name }}
+                        </td>
+                        <td style="padding: 0.85rem 1rem; font-family: monospace; color: var(--primary); font-weight: 600;">
+                            {{ email }}
+                        </td>
+                        <td style="padding: 0.85rem 1rem; color: var(--text-main); font-size: 0.84rem;">
+                            <i class="fa-regular fa-calendar-check" style="color: #10b981; margin-right: 0.35rem;"></i>
+                            {{ u.signup_date or 'N/A' }}
+                        </td>
+                        <td style="padding: 0.85rem 1rem; color: var(--text-main); font-size: 0.84rem;">
+                            {% if u.last_login_date %}
+                                <i class="fa-regular fa-clock" style="color: var(--primary); margin-right: 0.35rem;"></i>
+                                {{ u.last_login_date }}
+                            {% else %}
+                                <span style="color: var(--text-muted);">Never logged in</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 0.85rem 1rem; text-align: center; font-weight: 700;">
+                            <span class="badge-pill" style="background: #e0f2fe; color: #0369a1;">
+                                {{ u.total_logins }}
+                            </span>
+                        </td>
+                        <td style="padding: 0.85rem 1rem; font-family: monospace; font-size: 0.75rem; color: var(--text-muted); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ u.password_hash }}">
+                            {{ u.password_hash }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Hashmap JSON View -->
+    <div id="dataset-hashmap-view" style="display: none;">
+        <div style="background: #0f172a; color: #38bdf8; padding: 1.25rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; max-height: 500px; overflow-y: auto;">
+            <pre style="margin: 0; white-space: pre-wrap;">{{ hashmap | tojson(indent=2) }}</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDatasetView(type) {
+    const tableView = document.getElementById('dataset-table-view');
+    const hashmapView = document.getElementById('dataset-hashmap-view');
+    const btnTable = document.getElementById('btn-table-view');
+    const btnHashmap = document.getElementById('btn-hashmap-view');
+
+    if (type === 'table') {
+        tableView.style.display = 'block';
+        hashmapView.style.display = 'none';
+        btnTable.classList.add('active');
+        btnHashmap.classList.remove('active');
+    } else {
+        tableView.style.display = 'none';
+        hashmapView.style.display = 'block';
+        btnTable.classList.remove('active');
+        btnHashmap.classList.add('active');
+    }
+}
+</script>
+{% endblock %}
+

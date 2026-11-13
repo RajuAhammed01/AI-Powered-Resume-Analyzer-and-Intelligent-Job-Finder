@@ -14,7 +14,10 @@ csrf = CSRFProtect()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    try:
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    except Exception as e:
+        app.logger.warning(f"Could not create upload directory: {e}")
 
     db.init_app(app)
     login_manager.init_app(app)

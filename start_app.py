@@ -244,6 +244,18 @@ if os.path.exists(db_path):
         conn.execute("ALTER TABLE saved_job ADD COLUMN status VARCHAR(50) DEFAULT 'Saved'")
     if 'applied_date' not in columns:
         conn.execute("ALTER TABLE saved_job ADD COLUMN applied_date DATETIME")
+
+    cur.execute("PRAGMA table_info(user)")
+    u_cols = [col[1] for col in cur.fetchall()]
+    if 'last_login' not in u_cols:
+        conn.execute("ALTER TABLE user ADD COLUMN last_login DATETIME")
+    if 'last_login_ip' not in u_cols:
+        conn.execute("ALTER TABLE user ADD COLUMN last_login_ip VARCHAR(45) DEFAULT ''")
+    if 'login_count' not in u_cols:
+        conn.execute("ALTER TABLE user ADD COLUMN login_count INTEGER DEFAULT 0")
+    if 'status' not in u_cols:
+        conn.execute("ALTER TABLE user ADD COLUMN status VARCHAR(20) DEFAULT 'active'")
+
     conn.commit()
     conn.close()
 

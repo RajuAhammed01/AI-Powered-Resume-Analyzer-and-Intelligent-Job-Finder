@@ -50,6 +50,10 @@
                     <i class="fa-solid fa-sliders"></i>
                     <span>Job Preferences</span>
                 </a>
+                <a href="{{ url_for('auth.dataset_view') }}" class="nav-item-link {% if request.endpoint in ['auth.dataset_view', 'auth.activity'] %}active{% endif %}">
+                    <i class="fa-solid fa-database"></i>
+                    <span>Auth Dataset</span>
+                </a>
                 <a href="{{ url_for('main.profile') }}" class="nav-item-link {% if request.endpoint == 'main.profile' %}active{% endif %}">
                     <i class="fa-solid fa-user"></i>
                     <span>Profile & Settings</span>
