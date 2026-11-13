@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}JobSnap — AI-Powered Resume & Job Finder{% endblock %}</title>
-    <!-- Google Fonts & FontAwesome -->
+    <title>{% block title %}JobSnap — Enterprise AI Recruitment Platform{% endblock %}</title>
+    <!-- Google Fonts Inter & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script>
@@ -19,7 +22,7 @@
 <body>
 
 {% if current_user.is_authenticated and not is_auth_page %}
-    <!-- Logged In Layout with Dark Sidebar -->
+    <!-- Logged In Layout with Dark Navy Sidebar -->
     <div class="app-layout">
         <aside class="app-sidebar">
             <div class="sidebar-header">
@@ -31,11 +34,11 @@
             
             <nav class="sidebar-nav">
                 <a href="{{ url_for('main.dashboard') }}" class="nav-item-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
-                    <i class="fa-solid fa-house"></i>
+                    <i class="fa-regular fa-compass"></i>
                     <span>Dashboard</span>
                 </a>
                 <a href="{{ url_for('resume.upload') }}" class="nav-item-link {% if request.endpoint in ['resume.upload', 'resume.resume_analysis'] %}active{% endif %}">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <i class="fa-regular fa-file-lines"></i>
                     <span>Upload Resume</span>
                 </a>
                 <a href="{{ url_for('jobs.results') }}" class="nav-item-link {% if request.endpoint in ['jobs.results', 'jobs.job_detail'] %}active{% endif %}">
@@ -43,7 +46,7 @@
                     <span>Job Recommendations</span>
                 </a>
                 <a href="{{ url_for('jobs.saved_jobs') }}" class="nav-item-link {% if request.endpoint == 'jobs.saved_jobs' %}active{% endif %}">
-                    <i class="fa-solid fa-bookmark"></i>
+                    <i class="fa-regular fa-bookmark"></i>
                     <span>Saved Jobs</span>
                 </a>
                 <a href="{{ url_for('preferences.preferences') }}" class="nav-item-link {% if request.endpoint == 'preferences.preferences' %}active{% endif %}">
@@ -51,19 +54,14 @@
                     <span>Job Preferences</span>
                 </a>
                 <a href="{{ url_for('main.profile') }}" class="nav-item-link {% if request.endpoint == 'main.profile' %}active{% endif %}">
-                    <i class="fa-solid fa-user"></i>
+                    <i class="fa-regular fa-user"></i>
                     <span>Profile & Settings</span>
                 </a>
             </nav>
 
-            <div class="sidebar-promo-card">
-                <h5><i class="fa-solid fa-sparkles" style="color: #60a5fa;"></i> Build your future</h5>
-                <p>AI-powered matching finds live opportunities tailored to your skills.</p>
-            </div>
-
-            <div style="padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
-                <a href="{{ url_for('auth.logout') }}" class="nav-item-link" style="color: #ef4444;">
-                    <i class="fa-solid fa-right-from-bracket"></i>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('auth.logout') }}" class="nav-item-link sidebar-logout-link">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <span>Logout</span>
                 </a>
             </div>
@@ -74,41 +72,41 @@
 
         <div class="main-wrapper">
             <header class="app-topbar">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; flex: 1; max-width: 480px;">
                     <button type="button" class="btn btn-outline btn-sm mobile-hamburger-btn" onclick="toggleMobileSidebar()" title="Toggle Navigation Menu">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <span style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">
-                        {% if request.endpoint == 'main.dashboard' %}Dashboard Overview
-                        {% elif request.endpoint in ['resume.upload', 'resume.resume_analysis'] %}Resume Analysis & Upload
-                        {% elif request.endpoint in ['jobs.results', 'jobs.job_detail'] %}Job Recommendations
-                        {% elif request.endpoint == 'jobs.saved_jobs' %}Saved Jobs & Applications
-                        {% elif request.endpoint == 'preferences.preferences' %}Job Preferences
-                        {% elif request.endpoint == 'main.profile' %}Profile & Settings
-                        {% else %}JobSnap Application{% endif %}
-                    </span>
+                    <!-- Global Search Input -->
+                    <form action="{{ url_for('jobs.results') }}" method="GET" class="topbar-search-form" style="width: 100%;">
+                        <i class="fa-solid fa-magnifying-glass topbar-search-icon"></i>
+                        <input type="text" name="q" class="topbar-search-input" placeholder="Search jobs by role, skill, or company..." value="{{ request.args.get('q', '') }}">
+                    </form>
                 </div>
 
                 <div class="topbar-user">
-                    <button type="button" class="btn btn-outline btn-sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;">
-                        <i class="fa-solid fa-moon" id="themeIcon"></i>
-                    </button>
                     <a href="{{ url_for('resume.upload') }}" class="btn btn-primary btn-sm">
-                        <i class="fa-solid fa-plus"></i> Upload Resume
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
                     </a>
                     <a href="{{ url_for('jobs.results') }}" class="btn btn-outline btn-sm">
                         <i class="fa-solid fa-magnifying-glass"></i> Find Jobs
                     </a>
-                    
-                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-left: 0.5rem; padding-left: 1rem; border-left: 1px solid var(--border-color);">
+
+                    <!-- Notification Icon -->
+                    <div class="topbar-notification-btn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-dot"></span>
+                    </div>
+
+                    <!-- User Profile Avatar & Identity -->
+                    <a href="{{ url_for('main.profile') }}" class="topbar-user-profile-link" title="Account Profile & Settings">
                         <div class="user-avatar-badge">
                             {{ current_user.name[0] if current_user.name else 'U' }}
                         </div>
-                        <div>
+                        <div class="topbar-user-meta">
                             <div class="user-name-text">{{ current_user.name }}</div>
                             <div class="user-name-sub">{{ current_user.email }}</div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </header>
 
