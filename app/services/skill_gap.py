@@ -74,8 +74,210 @@ def _is_core_domain_skill(skill_name: str, domain_cfg: dict = None) -> bool:
     return s_clean in core or any(cs in s_clean for cs in core if len(cs) > 3)
 
 
+CANONICAL_SKILL_SYNONYMS = {
+    # Web & Frameworks
+    "reactjs": "react",
+    "react.js": "react",
+    "react": "react",
+    "nodejs": "node.js",
+    "node.js": "node.js",
+    "node": "node.js",
+    "vuejs": "vue",
+    "vue.js": "vue",
+    "vue": "vue",
+    "nextjs": "next.js",
+    "next.js": "next.js",
+    "next": "next.js",
+    "fastapi": "fastapi",
+    "fast api": "fastapi",
+    "fast-api": "fastapi",
+    "django": "django",
+    "flask": "flask",
+    "express": "express",
+    "expressjs": "express",
+    "express.js": "express",
+    "angularjs": "angular",
+    "angular": "angular",
+    "angular.js": "angular",
+    "svelte": "svelte",
+
+    # Languages
+    "golang": "go",
+    "go": "go",
+    "typescript": "typescript",
+    "ts": "typescript",
+    "javascript": "javascript",
+    "js": "javascript",
+    "python": "python",
+    "py": "python",
+    "c++": "c++",
+    "cpp": "c++",
+    "c#": "c#",
+    "csharp": "c#",
+
+    # Databases
+    "postgres": "postgresql",
+    "postgresql": "postgresql",
+    "psql": "postgresql",
+    "mysql": "mysql",
+    "mongodb": "mongodb",
+    "mongo": "mongodb",
+    "redis": "redis",
+    "mssql": "sql server",
+    "microsoft sql server": "sql server",
+    "sqlite": "sqlite",
+
+    # Cloud & DevOps
+    "k8s": "kubernetes",
+    "kubernetes": "kubernetes",
+    "docker": "docker",
+    "amazon web services": "aws",
+    "aws": "aws",
+    "google cloud platform": "gcp",
+    "google cloud": "gcp",
+    "gcp": "gcp",
+    "microsoft azure": "azure",
+    "azure": "azure",
+    "ci/cd": "cicd",
+    "ci-cd": "cicd",
+    "ci cd": "cicd",
+    "cicd": "cicd",
+    "continuous integration": "cicd",
+    "continuous deployment": "cicd",
+    "github actions": "github actions",
+    "terraform": "terraform",
+    "ansible": "ansible",
+
+    # APIs
+    "rest": "rest apis",
+    "rest api": "rest apis",
+    "rest apis": "rest apis",
+    "restful": "rest apis",
+    "restful api": "rest apis",
+    "restful apis": "rest apis",
+    "restful services": "rest apis",
+    "graphql": "graphql",
+    "gql": "graphql",
+
+    # Machine Learning & AI
+    "scikit-learn": "scikit-learn",
+    "scikit learn": "scikit-learn",
+    "sklearn": "scikit-learn",
+    "tensorflow": "tensorflow",
+    "tf": "tensorflow",
+    "pytorch": "pytorch",
+    "torch": "pytorch",
+    "machine learning": "machine learning",
+    "ml": "machine learning",
+    "deep learning": "deep learning",
+    "dl": "deep learning",
+    "natural language processing": "nlp",
+    "nlp": "nlp",
+    "computer vision": "computer vision",
+
+    # Styling
+    "tailwind": "tailwind css",
+    "tailwindcss": "tailwind css",
+    "tailwind css": "tailwind css",
+    "bootstrap": "bootstrap",
+}
+
+
+def normalize_skill_name(skill: str) -> str:
+    """Normalize skill name to canonical lowercase representation."""
+    if not skill or not isinstance(skill, str):
+        return ""
+    clean = skill.strip().lower()
+    if clean in CANONICAL_SKILL_SYNONYMS:
+        return CANONICAL_SKILL_SYNONYMS[clean]
+    stripped = re.sub(r"[^a-z0-9#\+]", "", clean)
+    if stripped in CANONICAL_SKILL_SYNONYMS:
+        return CANONICAL_SKILL_SYNONYMS[stripped]
+    return clean
+
+
 # Comprehensive related skill clusters for partial matching & transferable foundations
 RELATED_SKILL_MAP = {
+    # Backend Frameworks
+    "fastapi": {
+        "related": ["Python", "Django", "Flask", "REST APIs", "Backend"],
+        "reason": "Candidate has strong Python backend foundations and API development experience.",
+    },
+    "django": {
+        "related": ["Python", "Flask", "FastAPI", "PostgreSQL", "REST APIs"],
+        "reason": "Candidate has established Python web application and ORM database experience.",
+    },
+    "flask": {
+        "related": ["Python", "FastAPI", "Django", "REST APIs"],
+        "reason": "Candidate has lightweight Python web service and microframework experience.",
+    },
+    "express": {
+        "related": ["Node.js", "JavaScript", "TypeScript", "REST APIs"],
+        "reason": "Candidate has Node.js asynchronous backend service foundations.",
+    },
+    "nestjs": {
+        "related": ["Express", "Node.js", "TypeScript", "Angular"],
+        "reason": "Candidate has modular TypeScript server architecture foundations.",
+    },
+
+    # Databases
+    "postgresql": {
+        "related": ["MySQL", "SQL", "Database Design", "Relational Database"],
+        "reason": "Candidate has robust relational database querying and schema design experience.",
+    },
+    "mysql": {
+        "related": ["PostgreSQL", "SQL", "Database Design", "Relational Database"],
+        "reason": "Candidate has relational database management and transactional SQL foundations.",
+    },
+    "mongodb": {
+        "related": ["NoSQL", "Document Database", "DynamoDB", "PostgreSQL"],
+        "reason": "Candidate has document store and scalable non-relational database experience.",
+    },
+    "redis": {
+        "related": ["Caching", "Memcached", "Message Queue", "Key-Value Store"],
+        "reason": "Candidate has in-memory caching and low-latency data structures experience.",
+    },
+    "kafka": {
+        "related": ["RabbitMQ", "Message Queue", "Event Streaming", "Celery"],
+        "reason": "Candidate has distributed message queue and asynchronous pipeline experience.",
+    },
+    "rabbitmq": {
+        "related": ["Kafka", "Message Queue", "Celery", "Distributed Systems"],
+        "reason": "Candidate has asynchronous message broker and event queuing foundations.",
+    },
+
+    # Machine Learning & AI
+    "scikit-learn": {
+        "related": ["Pandas", "NumPy", "Machine Learning", "Python"],
+        "reason": "Candidate has Python data science, statistical modeling, and ML pipeline foundations.",
+    },
+    "tensorflow": {
+        "related": ["PyTorch", "Keras", "Deep Learning", "Python"],
+        "reason": "Candidate has deep learning neural network architecture implementation experience.",
+    },
+    "pytorch": {
+        "related": ["TensorFlow", "Keras", "Deep Learning", "Python"],
+        "reason": "Candidate has neural network modeling and deep learning research foundations.",
+    },
+
+    # Frontend & Mobile
+    "next.js": {
+        "related": ["React", "TypeScript", "JavaScript", "Frontend"],
+        "reason": "Candidate has core React component architecture and modern frontend engineering experience.",
+    },
+    "tailwind css": {
+        "related": ["Bootstrap", "CSS", "SASS", "HTML/CSS"],
+        "reason": "Candidate has responsive styling and modern CSS utility framework proficiency.",
+    },
+    "flutter": {
+        "related": ["React Native", "Dart", "Mobile App Development"],
+        "reason": "Candidate has cross-platform mobile UI architecture foundations.",
+    },
+    "react native": {
+        "related": ["Flutter", "React", "Mobile App Development"],
+        "reason": "Candidate has component-driven mobile application development experience.",
+    },
+
     # Cloud & Container Orchestration
     "kubernetes": {
         "related": ["Docker", "Containerization", "DevOps"],
@@ -581,8 +783,14 @@ def analyze_job_skill_gap(
 
         # Check canonical or substring alias match
         exact_found = False
+        j_norm = normalize_skill_name(j_original)
         for r_lower, r_orig in resume_set_lower.items():
-            if j_lower == r_lower or (len(j_lower) > 3 and (j_lower in r_lower or r_lower in j_lower)):
+            r_norm = normalize_skill_name(r_orig)
+            if (
+                j_lower == r_lower
+                or (j_norm and r_norm and j_norm == r_norm)
+                or (len(j_lower) > 3 and (j_lower in r_lower or r_lower in j_lower))
+            ):
                 matched_skills.append(j_original)
                 evidence_source, depth_bonus = evaluate_skill_evidence(
                     r_orig, resume_skills_clean, experience_text, projects_text, resume_text
@@ -607,14 +815,50 @@ def analyze_job_skill_gap(
         if exact_found:
             continue
 
+        # Check if skill is directly cited in candidate's resume text
+        if resume_text:
+            j_clean_escaped = re.escape(j_lower)
+            if re.search(r"(?<![a-zA-Z0-9#\+])" + j_clean_escaped + r"(?![a-zA-Z0-9#\+])", resume_text, re.IGNORECASE):
+                matched_skills.append(j_original)
+                evidence_source, depth_bonus = evaluate_skill_evidence(
+                    j_original, resume_skills_clean, experience_text, projects_text, resume_text
+                )
+                pts_earned = min(max_pts, exact_pts + (depth_bonus * weight_mult))
+                strong_skills.append({
+                    "skill": j_original,
+                    "matched_via": j_original,
+                    "category": category,
+                    "type": "strong",
+                    "strength": "Strong Match",
+                    "importance": imp_info["label"],
+                    "evidence_source": evidence_source,
+                    "reason": "Directly demonstrated in candidate profile.",
+                    "points_earned": pts_earned,
+                    "max_points": max_pts,
+                })
+                earned_points += pts_earned
+                exact_found = True
+
+        if exact_found:
+            continue
+
         # B. Partial Match (Related / Transferable Technology)
         partial_found = False
-        cluster_info = RELATED_SKILL_MAP.get(j_lower)
+        cluster_info = RELATED_SKILL_MAP.get(j_lower) or RELATED_SKILL_MAP.get(j_norm)
         if cluster_info:
             related_terms = cluster_info["related"]
             for rel in related_terms:
-                if rel.lower() in resume_set_lower:
-                    matched_via = resume_set_lower[rel.lower()]
+                rel_lower = rel.lower()
+                rel_norm = normalize_skill_name(rel)
+                matched_via = None
+                if rel_lower in resume_set_lower:
+                    matched_via = resume_set_lower[rel_lower]
+                else:
+                    for r_l, r_o in resume_set_lower.items():
+                        if normalize_skill_name(r_o) == rel_norm:
+                            matched_via = r_o
+                            break
+                if matched_via:
                     partial_item = {
                         "skill": j_original,
                         "matched_via": matched_via,

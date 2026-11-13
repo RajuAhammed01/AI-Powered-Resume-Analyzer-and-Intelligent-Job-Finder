@@ -3,7 +3,7 @@ from flask import Blueprint, flash, jsonify, redirect, render_template, request,
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.extensions import db
-from app.models import LoginHistory, User
+from app.models import LoginHistory, User, utc_now
 from app.services.auth_dataset import (
     build_auth_hashmap,
     get_auth_dataset_summary,
@@ -38,7 +38,7 @@ def register():
         user = User(
             name=name,
             email=email,
-            created_at=datetime.utcnow(),
+            created_at=utc_now(),
             status="active",
         )
         # Hash password securely using werkzeug (scrypt/pbkdf2 hashmap)
@@ -189,7 +189,7 @@ def export_dataset():
     data = {
         "dataset_name": "JobSnap User Authentication & Login History Dataset",
         "description": "User credentials (cryptographically hashed), signup dates, and login activity records",
-        "exported_at": datetime.utcnow().isoformat(),
+        "exported_at": utc_now().isoformat(),
         "summary": summary,
         "users_hashmap": hashmap,
     }

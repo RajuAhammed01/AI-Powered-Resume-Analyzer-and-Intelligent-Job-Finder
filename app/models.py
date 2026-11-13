@@ -1,10 +1,15 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db, login_manager
+
+
+def utc_now() -> datetime:
+    """Return timezone-naive UTC datetime for clean DB compatibility without deprecation warnings."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class User(UserMixin, db.Model):
@@ -20,7 +25,7 @@ class User(UserMixin, db.Model):
     language = db.Column(db.String(50), default="English")
     theme = db.Column(db.String(20), default="Light")
     notifications_enabled = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
     last_login = db.Column(db.DateTime, nullable=True)
     last_login_ip = db.Column(db.String(45), default="")
     login_count = db.Column(db.Integer, default=0)
@@ -90,7 +95,7 @@ class LoginHistory(db.Model):
     ip_address = db.Column(db.String(45), default="127.0.0.1")
     user_agent = db.Column(db.String(255), default="")
     failure_reason = db.Column(db.String(200), default="")
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=utc_now)
 
     def to_dict(self):
         return {
@@ -118,7 +123,7 @@ class Resume(db.Model):
     contact_info = db.Column(db.Text)
     completeness_score = db.Column(db.Integer, default=0)
     ats_score = db.Column(db.Integer, default=85)
-    upload_date = db.Column(db.DateTime, default=datetime.utcnow)
+    upload_date = db.Column(db.DateTime, default=utc_now)
 
     @property
     def skills(self):
@@ -165,7 +170,7 @@ class SavedJob(db.Model):
     apply_link = db.Column(db.String(500))
     status = db.Column(db.String(50), default="Saved")
     applied_date = db.Column(db.DateTime, nullable=True)
-    saved_date = db.Column(db.DateTime, default=datetime.utcnow)
+    saved_date = db.Column(db.DateTime, default=utc_now)
 
 
 @login_manager.user_loader

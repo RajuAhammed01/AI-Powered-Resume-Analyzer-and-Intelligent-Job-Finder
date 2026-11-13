@@ -345,11 +345,13 @@ def title_alignment_score(
     total_signal = len(role_overlap) + len(domain_overlap)
 
     if total_signal >= 2:
-        return 85
+        return 88
+    elif total_signal == 1 and same_domain:
+        return 82
     elif total_signal == 1:
-        return 68
+        return 72
     elif same_domain:
-        return 75
+        return 78
 
     raw_score = 0
     # Sentence-BERT similarity on titles as fallback only
@@ -365,13 +367,8 @@ def title_alignment_score(
             else:
                 raw_score = int(sim * 75)
 
-    if raw_score > 0:
-        return raw_score
-
-    return 40
-
-    if same_domain:
-        raw_score = max(raw_score, 85)
+    if raw_score == 0:
+        raw_score = 80 if same_domain else 50
 
     # Scale by domain compatibility multiplier
     final_score = int(round(raw_score * domain_mult))

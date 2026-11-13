@@ -3,7 +3,7 @@ import unittest
 from datetime import datetime
 from app import create_app
 from app.extensions import db
-from app.models import LoginHistory, User
+from app.models import LoginHistory, User, utc_now
 from app.services.auth_dataset import build_auth_hashmap, get_auth_dataset_summary
 
 
@@ -167,7 +167,7 @@ class TestAuthDatasetAndVercel(unittest.TestCase):
                 status="SUCCESS",
                 ip_address="192.168.1.50",
                 user_agent="TestAgent/1.0",
-                timestamp=datetime.utcnow(),
+                timestamp=utc_now(),
             )
             db.session.add(log)
             db.session.commit()

@@ -78,11 +78,11 @@ def record_login_activity(
     Record an authentication event in the database, update user metadata (last_login, login_count),
     and synchronize the auth dataset file.
     """
-    from app.models import LoginHistory, User
+    from app.models import LoginHistory, User, utc_now
 
     ip = ip_address or get_client_ip()
     ua = user_agent or get_client_user_agent()
-    now = datetime.utcnow()
+    now = utc_now()
 
     user_obj = user
     if not user_obj and email:
@@ -144,7 +144,7 @@ def sync_auth_dataset_file(filepath: str = None) -> bool:
         dataset_content = {
             "metadata": {
                 "dataset_name": "JobSnap User Authentication & Login Activity Dataset",
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "total_users": len(auth_map),
                 "storage_type": "email_indexed_hashmap",
                 "hash_algorithm": "werkzeug_scrypt_pbkdf2_salted",
@@ -186,7 +186,7 @@ def restore_users_from_auth_dataset() -> int:
             if not existing and u_data.get("password_hash"):
                 created_iso = u_data.get("created_at_iso")
                 last_login_iso = u_data.get("last_login_iso")
-                created_at = datetime.fromisoformat(created_iso) if created_iso else datetime.utcnow()
+                created_at = datetime.fromisoformat(created_iso) if created_iso else utc_now()
                 last_login = datetime.fromisoformat(last_login_iso) if last_login_iso else None
 
                 user = User(

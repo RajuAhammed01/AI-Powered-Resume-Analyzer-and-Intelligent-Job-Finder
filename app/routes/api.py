@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import text
 
 from app.extensions import db
-from app.models import JobPreference, Resume, SavedJob
+from app.models import JobPreference, Resume, SavedJob, utc_now
 from app.services.api_client import default_api_client
 from app.services.job_api import _CACHE, fetch_jobs, load_seed_jobs
 from app.services.job_validator import (
@@ -390,7 +390,7 @@ def record_apply_intent_async():
     existing = SavedJob.query.filter_by(user_id=current_user.id, job_id=verified_id).first()
     if existing:
         existing.status = "Applied"
-        existing.applied_date = datetime.utcnow()
+        existing.applied_date = utc_now()
         if norm_apply:
             existing.apply_link = norm_apply
     else:
@@ -403,7 +403,7 @@ def record_apply_intent_async():
             location=job.get("job_city") or job.get("location") if job else "Remote",
             match_score=job.get("combined_score", 85) if job else 85,
             status="Applied",
-            applied_date=datetime.utcnow(),
+            applied_date=utc_now(),
         )
         db.session.add(applied_record)
     db.session.commit()

@@ -5,7 +5,7 @@ from flask import Blueprint, flash, jsonify, redirect, render_template, request,
 from flask_login import current_user, login_required
 
 from app.extensions import db
-from app.models import JobPreference, Resume, SavedJob
+from app.models import JobPreference, Resume, SavedJob, utc_now
 from app.services.job_api import fetch_jobs
 from app.services.profile_detector import detect_candidate_profile, detect_candidate_seniority_intent, get_job_ordering_tuple
 from app.services.skill_extractor import extract_skills
@@ -286,7 +286,7 @@ def apply_redirect(index):
             if existing:
                 existing.status = "Applied"
                 if not existing.applied_date:
-                    existing.applied_date = datetime.utcnow()
+                    existing.applied_date = utc_now()
                 existing.apply_link = apply_url
                 existing.job_id = job_id
             else:
@@ -299,7 +299,7 @@ def apply_redirect(index):
                     location=location,
                     match_score=match_score,
                     status="Applied",
-                    applied_date=datetime.utcnow(),
+                    applied_date=utc_now(),
                 )
                 db.session.add(applied)
             db.session.commit()
@@ -334,7 +334,7 @@ def apply_job():
             existing = SavedJob.query.filter_by(user_id=current_user.id, job_title=job_title, company=company).first()
             if existing:
                 existing.status = "Applied"
-                existing.applied_date = datetime.utcnow()
+                existing.applied_date = utc_now()
                 if apply_link:
                     existing.apply_link = apply_link
                 if verified_job_id:
@@ -349,7 +349,7 @@ def apply_job():
                     location=location,
                     match_score=match_score,
                     status="Applied",
-                    applied_date=datetime.utcnow(),
+                    applied_date=utc_now(),
                 )
                 db.session.add(applied)
             db.session.commit()
@@ -462,7 +462,7 @@ def update_job_status(id):
         new_status = (request.json.get("status") if request.is_json else request.form.get("status", "Saved")).strip()
         job.status = new_status
         if new_status == "Applied" and not job.applied_date:
-            job.applied_date = datetime.utcnow()
+            job.applied_date = utc_now()
         db.session.commit()
         if (
             request.is_json
