@@ -5,6 +5,7 @@ import time
 import urllib.parse
 import requests
 
+from app.services.api_client import default_api_client, CircuitBreakerOpenError
 from app.services.job_validator import (
     normalize_apply_url,
     is_valid_apply_url,
@@ -72,7 +73,7 @@ def fetch_adzuna_jobs(role: str, location: str, limit: int = 15) -> list[dict]:
             "where": location if location and location.lower() != "remote" else "",
             "content-type": "application/json",
         }
-        resp = requests.get(url, params=params, timeout=7)
+        resp = default_api_client.get(url, service_name="Adzuna", params=params, timeout=(2.0, 5.0))
         if resp.ok:
             data = resp.json().get("results", [])
             for item in data:
@@ -116,14 +117,15 @@ def fetch_jsearch_jobs(role: str, location: str, limit: int = 15) -> list[dict]:
 
     jobs = []
     try:
-        resp = requests.get(
+        resp = default_api_client.get(
             "https://jsearch.p.rapidapi.com/search",
+            service_name="JSearch",
             headers={
                 "X-RapidAPI-Key": api_key,
                 "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
             },
             params={"query": f"{role} in {location}", "page": "1", "num_pages": "1"},
-            timeout=8,
+            timeout=(2.0, 6.0),
         )
         if resp.ok:
             raw_data = resp.json().get("data", [])

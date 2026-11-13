@@ -305,7 +305,13 @@
                         <input type="hidden" name="location" value="{{ job.get('job_city') or job.get('location', 'Remote') }}">
                         <input type="hidden" name="apply_link" value="{{ job.get('job_apply_link', '#') }}">
                         <input type="hidden" name="match_score" value="{{ job.get('combined_score', 80) }}">
-                        <button type="submit" class="btn btn-secondary btn-sm" title="Save Job"><i class="fa-regular fa-bookmark"></i></button>
+                        <button type="submit" class="btn btn-secondary btn-sm js-save-job-btn" 
+                                data-job-id="{{ job.get('job_id', '') }}"
+                                data-job-title="{{ job.get('job_title', '') }}"
+                                data-job-company="{{ job.get('employer_name') or job.get('company', '') }}"
+                                data-job-location="{{ job.get('job_city') or job.get('location', 'Remote') }}"
+                                data-job-url="{{ job.get('job_apply_link', '#') }}"
+                                title="Save Job"><i class="fa-regular fa-bookmark"></i></button>
                     </form>
 
                     <!-- Direct Apply Now Link -->
@@ -366,7 +372,12 @@
                 <input type="hidden" name="location" value="{{ active_job.get('job_city') or active_job.get('location', 'Remote') }}">
                 <input type="hidden" name="apply_link" value="{{ active_job.get('job_apply_link', '#') }}">
                 <input type="hidden" name="match_score" value="{{ active_job.get('combined_score', 80) }}">
-                <button type="submit" class="btn btn-outline btn-sm">
+                <button type="submit" class="btn btn-outline btn-sm js-save-job-btn"
+                        data-job-id="{{ active_job.get('job_id', '') }}"
+                        data-job-title="{{ active_job.get('job_title', '') }}"
+                        data-job-company="{{ active_job.get('employer_name') or active_job.get('company', '') }}"
+                        data-job-location="{{ active_job.get('job_city') or active_job.get('location', 'Remote') }}"
+                        data-job-url="{{ active_job.get('job_apply_link', '#') }}">
                     <i class="fa-regular fa-bookmark"></i> Save Job
                 </button>
             </form>

@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.extensions import db
@@ -420,6 +420,18 @@ def save_job():
         "combined_score": match_score,
     }
 
+    if (
+        request.is_json
+        or request.headers.get("Accept") == "application/json"
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    ):
+        return jsonify({
+            "success": True,
+            "saved": True,
+            "job_id": verified_job_id,
+            "message": f"Saved {job_title} at {company} to your saved jobs!",
+        })
+
     return redirect(request.referrer or url_for("jobs.saved_jobs"))
 
 
@@ -430,7 +442,15 @@ def remove_saved_job(id):
     if job and job.user_id == current_user.id:
         db.session.delete(job)
         db.session.commit()
+        if (
+            request.is_json
+            or request.headers.get("Accept") == "application/json"
+            or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        ):
+            return jsonify({"success": True, "saved": False, "id": id, "message": "Job removed from saved list."})
         flash("Job removed from saved list.")
+    elif request.is_json or request.headers.get("Accept") == "application/json":
+        return jsonify({"success": False, "error": "Job not found"}), 404
     return redirect(url_for("jobs.saved_jobs"))
 
 
@@ -439,10 +459,16 @@ def remove_saved_job(id):
 def update_job_status(id):
     job = db.session.get(SavedJob, id)
     if job and job.user_id == current_user.id:
-        new_status = request.form.get("status", "Saved").strip()
+        new_status = (request.json.get("status") if request.is_json else request.form.get("status", "Saved")).strip()
         job.status = new_status
         if new_status == "Applied" and not job.applied_date:
             job.applied_date = datetime.utcnow()
         db.session.commit()
+        if (
+            request.is_json
+            or request.headers.get("Accept") == "application/json"
+            or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        ):
+            return jsonify({"success": True, "id": id, "status": new_status, "message": f"Status updated to {new_status}"})
         flash(f"Updated status for '{job.job_title}' to '{new_status}'.")
     return redirect(request.referrer or url_for("jobs.saved_jobs"))
