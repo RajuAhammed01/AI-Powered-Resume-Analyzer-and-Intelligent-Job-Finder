@@ -225,6 +225,9 @@ def job_detail(index):
         user_jobs = USER_JOBS_CACHE.get(current_user.id, [])
         active_jid = job.get("job_id")
         similar_jobs = [j for j in user_jobs if j.get("job_id") != active_jid][:3]
+        if not similar_jobs:
+            from app.services.job_api import load_seed_jobs
+            similar_jobs = [j for j in load_seed_jobs() if j.get("job_id") != active_jid][:3]
         
         return render_template(
             "job_detail.html",
@@ -258,7 +261,12 @@ def apply_redirect(index):
         flash("The selected job opening could not be found or your session has expired. Please refresh your recommendations.")
         return redirect(url_for("jobs.results"))
 
-    raw_apply_url = job.get("job_apply_link", "").strip() or direct_url
+    raw_apply_url = job.get("job_apply_link", "").strip()
+    if (not raw_apply_url or not is_valid_apply_url(raw_apply_url)) and direct_url and is_valid_apply_url(direct_url):
+        raw_apply_url = direct_url
+    elif not raw_apply_url:
+        raw_apply_url = direct_url
+
     job_title = job.get("job_title", "").strip()
     company = (job.get("employer_name") or job.get("company", "")).strip()
     location = (job.get("job_city") or job.get("location", "Remote")).strip()
@@ -319,6 +327,7 @@ def apply_job():
         match_score = 85
 
     apply_link = normalize_apply_url(raw_apply_link)
+    verified_job_id = job_id if (job_id and job_id != "job") else generate_job_id({"job_title": job_title, "company": company, "job_apply_link": apply_link})
 
     if job_title and company:
         try:
@@ -328,12 +337,12 @@ def apply_job():
                 existing.applied_date = datetime.utcnow()
                 if apply_link:
                     existing.apply_link = apply_link
-                if job_id:
-                    existing.job_id = job_id
+                if verified_job_id:
+                    existing.job_id = verified_job_id
             else:
                 applied = SavedJob(
                     user_id=current_user.id,
-                    job_id=job_id or "job",
+                    job_id=verified_job_id,
                     job_title=job_title,
                     company=company,
                     apply_link=apply_link,
@@ -376,13 +385,14 @@ def save_job():
         match_score = 85
 
     apply_link = normalize_apply_url(raw_apply_link)
+    verified_job_id = job_id or generate_job_id({"job_title": job_title, "company": company, "job_apply_link": apply_link})
 
     # Avoid duplicate saves
     existing = SavedJob.query.filter_by(user_id=current_user.id, job_title=job_title, company=company).first()
     if not existing:
         saved = SavedJob(
             user_id=current_user.id,
-            job_id=job_id or generate_job_id({"job_title": job_title, "company": company, "job_apply_link": apply_link}),
+            job_id=verified_job_id,
             job_title=job_title,
             company=company,
             apply_link=apply_link,
@@ -395,8 +405,20 @@ def save_job():
     else:
         if apply_link and not existing.apply_link:
             existing.apply_link = apply_link
-            db.session.commit()
+        if verified_job_id and (not existing.job_id or existing.job_id in ("job", "j001")):
+            existing.job_id = verified_job_id
+        db.session.commit()
         flash("Job is already saved.")
+
+    GLOBAL_JOBS_REGISTRY[verified_job_id] = {
+        "job_id": verified_job_id,
+        "job_title": job_title,
+        "company": company,
+        "employer_name": company,
+        "job_apply_link": apply_link,
+        "location": location,
+        "combined_score": match_score,
+    }
 
     return redirect(request.referrer or url_for("jobs.saved_jobs"))
 

@@ -404,7 +404,7 @@
                 </div>
                 <div>
                     <i class="fa-solid fa-arrow-up-right-from-square" style="width: 20px; color: var(--primary);"></i>
-                    <a href="{{ url_for('jobs.apply_redirect', index=index) }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                    <a href="{{ url_for('jobs.apply_redirect', index=job.get('job_id', index)) }}?direct_url={{ job.job_apply_link|urlencode }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-weight: 600; text-decoration: none;">
                         Original Posting on {{ job.get('source', 'Company Site') }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
                     </a>
                 </div>

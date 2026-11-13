@@ -40,7 +40,12 @@ def load_seed_jobs() -> list[dict]:
     if os.path.exists(SEED_JOBS_FILE):
         try:
             with open(SEED_JOBS_FILE, "r", encoding="utf-8") as f:
-                _SEED_JOBS_CACHE = json.load(f)
+                raw_seeds = json.load(f)
+                for j in raw_seeds:
+                    if not j.get("job_id"):
+                        j["job_id"] = generate_job_id(j)
+                    GLOBAL_JOBS_REGISTRY[j["job_id"]] = j
+                _SEED_JOBS_CACHE = raw_seeds
                 return _SEED_JOBS_CACHE
         except Exception as e:
             logger.warning(f"Failed to load verified jobs seed: {e}")

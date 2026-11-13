@@ -209,3 +209,4 @@ def test_project_portfolio_quantifiable_metrics_bonus():
 
     assert score_metrics > score_plain
     assert "Quantifiable engineering outcomes" in rationale or "live project demonstration" in rationale
+
