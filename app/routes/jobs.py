@@ -58,6 +58,12 @@ def results():
 
     search_query = request.args.get("q", "").strip()
     source_query = request.args.get("source", "all").strip().lower()
+    location_query = request.args.get("location", "all").strip().lower()
+    type_query = request.args.get("type", "all").strip().lower()
+    seniority_query = request.args.get("seniority", "all").strip().lower()
+    domain_query = request.args.get("domain", "all").strip().lower()
+    min_score_query = request.args.get("min_score", "all").strip().lower()
+    sort_query = request.args.get("sort", "score").strip().lower()
 
     if search_query:
         target_role = search_query
@@ -124,14 +130,43 @@ def results():
     compatible_jobs = [j for j in jobs if not j.get("is_unrelated_domain", False)]
     display_jobs = jobs if search_query else (compatible_jobs if compatible_jobs else jobs)
 
-    # Order jobs with priority: relevant internships first for internship seekers, then entry-level, then experienced
-    display_jobs.sort(
-        key=lambda j: get_job_ordering_tuple(
-            j,
-            is_internship_seeking=is_internship_seeking,
-            is_entry_level_seeking=is_entry_level_seeking,
+    # Apply server-side filters if requested via GET URL parameters
+    if location_query == "remote":
+        display_jobs = [j for j in display_jobs if "remote" in (j.get("job_city") or j.get("location", "")).lower()]
+    elif location_query == "onsite":
+        display_jobs = [j for j in display_jobs if "remote" not in (j.get("job_city") or j.get("location", "")).lower()]
+
+    if type_query and type_query != "all":
+        display_jobs = [j for j in display_jobs if type_query in (j.get("job_employment_type", "")).lower()]
+
+    if seniority_query in ["internship", "intern"]:
+        display_jobs = [j for j in display_jobs if j.get("is_internship")]
+    elif seniority_query in ["entry_level", "entry", "junior"]:
+        display_jobs = [j for j in display_jobs if j.get("is_entry_level")]
+    elif seniority_query in ["experienced", "mid", "senior"]:
+        display_jobs = [j for j in display_jobs if not j.get("is_internship") and not j.get("is_entry_level")]
+
+    if domain_query and domain_query != "all":
+        display_jobs = [j for j in display_jobs if j.get("domain_info", {}).get("domain") == domain_query]
+
+    if min_score_query and min_score_query.isdigit():
+        min_s = int(min_score_query)
+        display_jobs = [j for j in display_jobs if j.get("combined_score", 0) >= min_s]
+
+    # Order jobs with priority:
+    if sort_query == "title":
+        display_jobs.sort(key=lambda j: j.get("job_title", "").lower())
+    elif sort_query == "company":
+        display_jobs.sort(key=lambda j: (j.get("employer_name") or j.get("company", "")).lower())
+    else:
+        # Default smart priority ordering (internships first for intern seekers, then match score)
+        display_jobs.sort(
+            key=lambda j: get_job_ordering_tuple(
+                j,
+                is_internship_seeking=is_internship_seeking,
+                is_entry_level_seeking=is_entry_level_seeking,
+            )
         )
-    )
 
     # Re-assign cache_id strictly AFTER sorting and ensure all jobs have valid job_ids and registry entries
     for idx, job in enumerate(display_jobs):
@@ -140,18 +175,35 @@ def results():
             job["job_id"] = generate_job_id(job)
         GLOBAL_JOBS_REGISTRY[job["job_id"]] = job
 
-    USER_JOBS_CACHE[current_user.id] = display_jobs[:30]
+    USER_JOBS_CACHE[current_user.id] = display_jobs[:35]
+
+    # Dynamic extraction of top skills across active results for one-click quick filtering
+    skills_counter = {}
+    for j in display_jobs:
+        for s in (j.get("job_skills") or []):
+            clean_s = s.strip()
+            if 1 < len(clean_s) < 25 and not clean_s.lower().startswith("http") and not clean_s.isdigit():
+                skills_counter[clean_s] = skills_counter.get(clean_s, 0) + 1
+    popular_skills = [s for s, _ in sorted(skills_counter.items(), key=lambda x: x[1], reverse=True)[:10]]
 
     saved_jobs_count = SavedJob.query.filter_by(user_id=current_user.id).count()
 
     return render_template(
         "results.html",
-        jobs=display_jobs[:30],
+        jobs=display_jobs[:35],
         resume=resume,
         candidate_profile=candidate_profile,
         saved_jobs_count=saved_jobs_count,
         top_match_score=display_jobs[0]["combined_score"] if display_jobs else 88,
         selected_source=source_query,
+        selected_location=location_query,
+        selected_type=type_query,
+        selected_seniority=seniority_query,
+        selected_domain=domain_query,
+        selected_min_score=min_score_query,
+        selected_sort=sort_query,
+        search_query=search_query,
+        popular_skills=popular_skills,
         is_internship_seeking=is_internship_seeking,
         is_entry_level_seeking=is_entry_level_seeking,
         seniority_intent=seniority_intent,

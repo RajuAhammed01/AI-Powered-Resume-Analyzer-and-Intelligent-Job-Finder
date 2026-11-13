@@ -76,43 +76,109 @@
     </div>
 </div>
 
-<!-- Filter Bar -->
-<div class="card-panel" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
-    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; flex: 1;">
-        <select id="filter-location" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
-            <option value="all">All Locations</option>
-            <option value="remote">Remote Only</option>
-            <option value="onsite">On-site / Specific Location</option>
-        </select>
-        
-        <select id="filter-type" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
-            <option value="all">All Job Types</option>
-            <option value="full-time">Full-time</option>
-            <option value="contract">Contract</option>
-        </select>
+<!-- Advanced Multi-Criteria Filter Center -->
+<div class="filter-card-panel">
+    <!-- Top Filter Row: Search & Dropdowns -->
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; flex: 1; align-items: center;">
+            <!-- Category / Domain Filter -->
+            <select id="filter-domain" onchange="filterJobs()" class="filter-select-control" title="Filter by Career Domain">
+                <option value="all" {% if selected_domain == 'all' %}selected{% endif %}>All Domains</option>
+                <option value="backend" {% if selected_domain == 'backend' %}selected{% endif %}>Backend & APIs</option>
+                <option value="frontend" {% if selected_domain == 'frontend' %}selected{% endif %}>Frontend & Web</option>
+                <option value="fullstack" {% if selected_domain == 'fullstack' %}selected{% endif %}>Full-Stack</option>
+                <option value="data_ml" {% if selected_domain == 'data_ml' %}selected{% endif %}>Data & AI / ML</option>
+                <option value="devops" {% if selected_domain == 'devops' %}selected{% endif %}>DevOps & Cloud</option>
+            </select>
 
-        <select id="filter-source" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);">
-            <option value="all">All Real-Time Sources</option>
-            <option value="remotive">Remotive Live</option>
-            <option value="arbeitnow">Arbeitnow Live</option>
-            <option value="remoteok">RemoteOK Live</option>
-            <option value="jobicy">Jobicy Live</option>
-        </select>
+            <!-- Seniority / Experience Filter -->
+            <select id="filter-seniority" onchange="filterJobs()" class="filter-select-control" title="Filter by Seniority Level">
+                <option value="all" {% if selected_seniority == 'all' %}selected{% endif %}>All Levels</option>
+                <option value="internship" {% if selected_seniority == 'internship' %}selected{% endif %}>Internships Only</option>
+                <option value="entry_level" {% if selected_seniority == 'entry_level' %}selected{% endif %}>Entry-Level / Junior</option>
+                <option value="experienced" {% if selected_seniority == 'experienced' %}selected{% endif %}>Experienced / Mid-Senior</option>
+            </select>
 
-        <select id="sort-select" onchange="filterJobs()" class="input-control" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">
-            <option value="score">Sort by Match Score (High to Low)</option>
-            <option value="title">Sort by Job Title</option>
-        </select>
+            <!-- Match Score Threshold Filter -->
+            <select id="filter-score" onchange="filterJobs()" class="filter-select-control" title="Filter by Minimum Match Score">
+                <option value="all" {% if selected_min_score == 'all' %}selected{% endif %}>All Match Scores</option>
+                <option value="80" {% if selected_min_score == '80' %}selected{% endif %}>80%+ High Matches</option>
+                <option value="65" {% if selected_min_score == '65' %}selected{% endif %}>65%+ Good Matches</option>
+                <option value="50" {% if selected_min_score == '50' %}selected{% endif %}>50%+ Relevant Matches</option>
+            </select>
+
+            <!-- Location Filter -->
+            <select id="filter-location" onchange="filterJobs()" class="filter-select-control" title="Filter by Workplace Location">
+                <option value="all" {% if selected_location == 'all' %}selected{% endif %}>All Locations</option>
+                <option value="remote" {% if selected_location == 'remote' %}selected{% endif %}>Remote Only</option>
+                <option value="onsite" {% if selected_location == 'onsite' %}selected{% endif %}>On-site / Specific</option>
+            </select>
+
+            <!-- Job Type Filter -->
+            <select id="filter-type" onchange="filterJobs()" class="filter-select-control" title="Filter by Employment Type">
+                <option value="all" {% if selected_type == 'all' %}selected{% endif %}>All Job Types</option>
+                <option value="full-time" {% if selected_type == 'full-time' %}selected{% endif %}>Full-time</option>
+                <option value="contract" {% if selected_type == 'contract' %}selected{% endif %}>Contract</option>
+                <option value="internship" {% if selected_type == 'internship' %}selected{% endif %}>Internship</option>
+            </select>
+
+            <!-- Real-Time Source Filter -->
+            <select id="filter-source" onchange="filterJobs()" class="filter-select-control" style="font-weight: 600; color: #1A6DF7;" title="Filter by Live Provider">
+                <option value="all" {% if selected_source == 'all' %}selected{% endif %}>All Live Sources</option>
+                <option value="remotive" {% if selected_source == 'remotive' %}selected{% endif %}>Remotive Live</option>
+                <option value="arbeitnow" {% if selected_source == 'arbeitnow' %}selected{% endif %}>Arbeitnow Live</option>
+                <option value="remoteok" {% if selected_source == 'remoteok' %}selected{% endif %}>RemoteOK Live</option>
+                <option value="jobicy" {% if selected_source == 'jobicy' %}selected{% endif %}>Jobicy Live</option>
+            </select>
+
+            <!-- Sorting -->
+            <select id="sort-select" onchange="filterJobs()" class="filter-select-control" title="Sort Results">
+                <option value="score" {% if selected_sort == 'score' %}selected{% endif %}>Highest Match Score</option>
+                <option value="title" {% if selected_sort == 'title' %}selected{% endif %}>Job Title (A–Z)</option>
+                <option value="company" {% if selected_sort == 'company' %}selected{% endif %}>Company (A–Z)</option>
+            </select>
+        </div>
+
+        <!-- Real-Time Search Box -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+            <div class="input-icon-group" style="width: 260px; margin: 0; position: relative;">
+                <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.82rem; color: #94A3B8;"></i>
+                <input type="text" id="search-input" oninput="filterJobs()" class="input-control" placeholder="Search title, company, skill..." value="{{ search_query or '' }}" style="padding: 0.45rem 2rem 0.45rem 2.2rem; font-size: 0.82rem; border-radius: 8px;">
+                <span id="search-clear-btn" onclick="clearSearchInput()" style="display: none; position: absolute; right: 0.65rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94A3B8; font-size: 0.85rem;" title="Clear search">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </span>
+            </div>
+        </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-        <span class="badge-pill" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.78rem;">
-            <i class="fa-solid fa-bolt" style="color: #10b981;"></i> Real-Time Job Search Active
+    <!-- Quick Skill Filter Tag Bar -->
+    {% if popular_skills %}
+    <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; padding-top: 0.75rem; border-top: 1px dashed #E2E8F0; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.74rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.4px;">
+            <i class="fa-solid fa-bolt" style="color: #1A6DF7;"></i> Quick Skills:
         </span>
-        <form method="GET" action="{{ url_for('jobs.results') }}" class="input-icon-group" style="width: 250px; margin: 0;">
-            <i class="fa-solid fa-magnifying-glass field-icon" style="font-size: 0.85rem;"></i>
-            <input type="text" id="search-input" name="q" oninput="filterJobs()" class="input-control" placeholder="Search title, skill, role..." value="{{ request.args.get('q', '') }}" style="padding-top: 0.45rem; padding-bottom: 0.45rem; font-size: 0.85rem;">
-        </form>
+        {% for skill in popular_skills %}
+            <button type="button" class="filter-skill-btn" data-skill="{{ skill|lower }}" onclick="toggleSkillFilter('{{ skill|lower }}', this)">
+                {{ skill }}
+            </button>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Live Counter & Active Filter Chips Bar -->
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.65rem; padding-top: 0.6rem; border-top: 1px solid #F1F5F9;">
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+            <div style="font-size: 0.82rem; color: #475569; font-weight: 500;">
+                Showing <strong id="visible-jobs-count" style="color: #0E1B2E; font-weight: 800;">{{ jobs|length }}</strong> of <span id="total-jobs-count">{{ jobs|length }}</span> active openings
+            </div>
+            <div id="active-filters-container" style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                <!-- Dynamically populated active filter chips -->
+            </div>
+        </div>
+
+        <button type="button" id="reset-filters-btn" class="btn-reset-filters" onclick="resetAllFilters()" style="display: none;">
+            <i class="fa-solid fa-rotate-left"></i> Reset All Filters
+        </button>
     </div>
 </div>
 
@@ -129,7 +195,10 @@
              data-score="{{ job.get('combined_score', 0) }}"
              data-title="{{ job.get('job_title', '')|lower }}"
              data-company="{{ (job.get('employer_name') or job.get('company') or '')|lower }}"
-             data-skills="{{ (job.get('job_skills', []) + job.get('matched_skills', []))|join(' ')|lower }}">
+             data-skills="{{ (job.get('job_skills', []) + job.get('matched_skills', []))|join(' ')|lower }}"
+             data-seniority="{% if job.get('is_internship') %}internship{% elif job.get('is_entry_level') %}entry_level{% else %}experienced{% endif %}"
+             data-domain="{{ (job.get('domain_info', {}).get('domain') or 'general')|lower }}"
+             data-salary="{{ 'true' if job.get('salary') else 'false' }}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
                 <div style="display: flex; gap: 0.85rem; align-items: flex-start; flex: 1;">
                     <div class="mock-company-icon" style="background: {% if loop.index0 % 3 == 0 %}#2563eb{% elif loop.index0 % 3 == 1 %}#7c3aed{% else %}#059669{% endif %}; font-size: 1.1rem; width: 44px; height: 44px; flex-shrink: 0;">
@@ -417,14 +486,129 @@
 </div>
 
 <script>
+let activeSkillFilters = new Set();
+
+function toggleSkillFilter(skill, btn) {
+    if (activeSkillFilters.has(skill)) {
+        activeSkillFilters.delete(skill);
+        btn.classList.remove('active');
+    } else {
+        activeSkillFilters.add(skill);
+        btn.classList.add('active');
+    }
+    filterJobs();
+}
+
+function clearSearchInput() {
+    const input = document.getElementById('search-input');
+    if (input) {
+        input.value = '';
+        document.getElementById('search-clear-btn').style.display = 'none';
+        filterJobs();
+    }
+}
+
+function resetAllFilters() {
+    const selects = ['filter-domain', 'filter-seniority', 'filter-score', 'filter-location', 'filter-type', 'filter-source'];
+    selects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 'all';
+    });
+
+    const sortEl = document.getElementById('sort-select');
+    if (sortEl) sortEl.value = 'score';
+
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = '';
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    activeSkillFilters.clear();
+    document.querySelectorAll('.filter-skill-btn').forEach(btn => btn.classList.remove('active'));
+
+    filterJobs();
+}
+
+function updateActiveChips() {
+    const container = document.getElementById('active-filters-container');
+    const resetBtn = document.getElementById('reset-filters-btn');
+    if (!container) return;
+    container.innerHTML = '';
+
+    let hasActive = false;
+
+    // Check search
+    const searchVal = document.getElementById('search-input').value.trim();
+    if (searchVal) {
+        hasActive = true;
+        const chip = document.createElement('span');
+        chip.className = 'filter-active-pill';
+        chip.innerHTML = `Search: "${searchVal}" <i class="fa-solid fa-xmark pill-remove" onclick="clearSearchInput()"></i>`;
+        container.appendChild(chip);
+    }
+
+    // Check dropdowns
+    const dropdownLabels = {
+        'filter-domain': { label: 'Domain', all: 'all' },
+        'filter-seniority': { label: 'Level', all: 'all' },
+        'filter-score': { label: 'Min Score', all: 'all', suffix: '%+' },
+        'filter-location': { label: 'Location', all: 'all' },
+        'filter-type': { label: 'Type', all: 'all' },
+        'filter-source': { label: 'Source', all: 'all' }
+    };
+
+    for (const [id, meta] of Object.entries(dropdownLabels)) {
+        const el = document.getElementById(id);
+        if (el && el.value !== meta.all) {
+            hasActive = true;
+            const text = el.options[el.selectedIndex].text;
+            const chip = document.createElement('span');
+            chip.className = 'filter-active-pill';
+            chip.innerHTML = `${text} <i class="fa-solid fa-xmark pill-remove" onclick="document.getElementById('${id}').value='all'; filterJobs();"></i>`;
+            container.appendChild(chip);
+        }
+    }
+
+    // Check skill pills
+    activeSkillFilters.forEach(skill => {
+        hasActive = true;
+        const chip = document.createElement('span');
+        chip.className = 'filter-active-pill';
+        chip.innerHTML = `Skill: ${skill} <i class="fa-solid fa-xmark pill-remove" onclick="removeSkillFilter('${skill}')"></i>`;
+        container.appendChild(chip);
+    });
+
+    if (resetBtn) {
+        resetBtn.style.display = hasActive ? 'inline-flex' : 'none';
+    }
+}
+
+function removeSkillFilter(skill) {
+    activeSkillFilters.delete(skill);
+    const btn = document.querySelector(`.filter-skill-btn[data-skill="${skill}"]`);
+    if (btn) btn.classList.remove('active');
+    filterJobs();
+}
+
 function filterJobs() {
-    const locFilter = document.getElementById('filter-location').value.toLowerCase();
-    const typeFilter = document.getElementById('filter-type').value.toLowerCase();
+    const domainFilter = document.getElementById('filter-domain') ? document.getElementById('filter-domain').value.toLowerCase() : 'all';
+    const seniorityFilter = document.getElementById('filter-seniority') ? document.getElementById('filter-seniority').value.toLowerCase() : 'all';
+    const scoreFilter = document.getElementById('filter-score') ? document.getElementById('filter-score').value : 'all';
+    const locFilter = document.getElementById('filter-location') ? document.getElementById('filter-location').value.toLowerCase() : 'all';
+    const typeFilter = document.getElementById('filter-type') ? document.getElementById('filter-type').value.toLowerCase() : 'all';
     const sourceFilter = document.getElementById('filter-source') ? document.getElementById('filter-source').value.toLowerCase() : 'all';
-    const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
-    const sortVal = document.getElementById('sort-select').value;
-    
+    const searchVal = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase().trim() : '';
+    const sortVal = document.getElementById('sort-select') ? document.getElementById('sort-select').value : 'score';
+
+    // Show/hide clear search icon
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) {
+        clearBtn.style.display = searchVal ? 'block' : 'none';
+    }
+
     const container = document.getElementById('jobs-list-container');
+    if (!container) return;
+
     const cards = Array.from(container.querySelectorAll('.job-card'));
     let visibleCount = 0;
 
@@ -435,13 +619,47 @@ function filterJobs() {
         const title = card.dataset.title || '';
         const company = card.dataset.company || '';
         const skills = card.dataset.skills || '';
+        const seniority = card.dataset.seniority || '';
+        const domain = card.dataset.domain || '';
+        const score = parseInt(card.dataset.score || 0, 10);
 
+        // 1. Domain match
+        let matchDomain = (domainFilter === 'all') || (domain === domainFilter) || (domainFilter === 'backend' && domain.includes('backend')) || (domainFilter === 'frontend' && domain.includes('frontend')) || (domainFilter === 'data_ml' && (domain.includes('data') || domain.includes('ml')));
+
+        // 2. Seniority match
+        let matchSeniority = (seniorityFilter === 'all') || (seniority === seniorityFilter);
+
+        // 3. Match score threshold
+        let matchScore = true;
+        if (scoreFilter !== 'all') {
+            const minScore = parseInt(scoreFilter, 10);
+            matchScore = score >= minScore;
+        }
+
+        // 4. Location match
         let matchLoc = (locFilter === 'all') || (locFilter === 'remote' && loc.includes('remote')) || (locFilter === 'onsite' && !loc.includes('remote'));
+
+        // 5. Job Type match
         let matchType = (typeFilter === 'all') || type.includes(typeFilter);
+
+        // 6. Source match
         let matchSource = (sourceFilter === 'all') || src.includes(sourceFilter);
+
+        // 7. Text Search match
         let matchSearch = !searchVal || title.includes(searchVal) || company.includes(searchVal) || skills.includes(searchVal);
 
-        if (matchLoc && matchType && matchSource && matchSearch) {
+        // 8. Active Skill Tags match (all selected skills must be present)
+        let matchSkills = true;
+        if (activeSkillFilters.size > 0) {
+            for (const skill of activeSkillFilters) {
+                if (!skills.includes(skill) && !title.includes(skill)) {
+                    matchSkills = false;
+                    break;
+                }
+            }
+        }
+
+        if (matchDomain && matchSeniority && matchScore && matchLoc && matchType && matchSource && matchSearch && matchSkills) {
             card.style.display = 'block';
             visibleCount++;
         } else {
@@ -451,16 +669,30 @@ function filterJobs() {
 
     // Sorting
     if (sortVal === 'score') {
-        cards.sort((a, b) => parseInt(b.dataset.score || 0) - parseInt(a.dataset.score || 0));
+        cards.sort((a, b) => parseInt(b.dataset.score || 0, 10) - parseInt(a.dataset.score || 0, 10));
     } else if (sortVal === 'title') {
         cards.sort((a, b) => (a.dataset.title || '').localeCompare(b.dataset.title || ''));
+    } else if (sortVal === 'company') {
+        cards.sort((a, b) => (a.dataset.company || '').localeCompare(b.dataset.company || ''));
     }
     cards.forEach(card => container.appendChild(card));
 
+    // Update Live Count
+    const visibleCountEl = document.getElementById('visible-jobs-count');
+    if (visibleCountEl) visibleCountEl.textContent = visibleCount;
+
+    // Show/hide Empty State
     const noJobsEl = document.getElementById('no-filter-jobs');
     if (noJobsEl) {
         noJobsEl.style.display = visibleCount === 0 ? 'block' : 'none';
     }
+
+    // Refresh active chips
+    updateActiveChips();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    filterJobs();
+});
 </script>
 {% endblock %}

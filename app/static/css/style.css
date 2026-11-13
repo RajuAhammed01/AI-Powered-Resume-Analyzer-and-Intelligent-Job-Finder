@@ -1371,4 +1371,111 @@ body {
   }
 }
 
+/* =========================================================================
+   12. Advanced Job Filtering UI Components (Enterprise SaaS)
+   ========================================================================= */
+.filter-card-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.filter-grid-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.filter-select-control {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #1E293B;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  outline: none;
+}
+.filter-select-control:hover {
+  border-color: #CBD5E1;
+  background-color: #F8FAFC;
+}
+.filter-select-control:focus {
+  border-color: #1A6DF7;
+  box-shadow: 0 0 0 3px rgba(26, 109, 247, 0.12);
+}
+
+.filter-skill-btn {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  border-radius: 9999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  user-select: none;
+}
+.filter-skill-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+.filter-skill-btn.active {
+  background: #1A6DF7 !important;
+  color: #FFFFFF !important;
+  border-color: #1A6DF7 !important;
+  box-shadow: 0 2px 4px rgba(26, 109, 247, 0.25);
+}
+
+.filter-active-pill {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  border-radius: 9999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.filter-active-pill .pill-remove {
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: #3B82F6;
+}
+.filter-active-pill .pill-remove:hover {
+  color: #1D4ED8;
+}
+
+.btn-reset-filters {
+  background: transparent;
+  border: 1px dashed #CBD5E1;
+  border-radius: 8px;
+  color: #64748B;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.38rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.btn-reset-filters:hover {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+  color: #DC2626;
+}
+
 
